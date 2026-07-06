@@ -31,10 +31,18 @@ const CONTRATOS_POR_OPERACAO = 5;
 const VALOR_POR_PONTO_USD = 2;
 const USD_POR_PONTO = CONTRATOS_POR_OPERACAO * VALOR_POR_PONTO_USD;
 
-function formatarUSD(pontos) {
-  const valor = pontos * USD_POR_PONTO;
+function formatarUSDValor(valor) {
   const sinal = valor > 0 ? "+" : valor < 0 ? "-" : "";
   return `${sinal}US$ ${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatarUSDContabil(valor) {
+  const abs = Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return valor < 0 ? `US$ (${abs})` : `US$ ${abs}`;
+}
+
+function formatarUSD(pontos) {
+  return formatarUSDValor(pontos * USD_POR_PONTO);
 }
 
 async function buscarDadosPublicos() {
@@ -160,21 +168,40 @@ function renderBarras(operacoes) {
     return;
   }
 
-  const pontosDe = (o) =>
-    o.resultado === RESULTADO_LUCRO ? Math.abs(o.alvo - o.regiao_preco) : -Math.abs(o.stop - o.regiao_preco);
+  const deltaUSD = (o) =>
+    (o.resultado === RESULTADO_LUCRO ? Math.abs(o.alvo - o.regiao_preco) : -Math.abs(o.stop - o.regiao_preco)) *
+    USD_POR_PONTO;
 
-  const valores = resolvidas.map(pontosDe);
-  const maxAbs = Math.max(...valores.map(Math.abs), 1);
+  let acumulado = 0;
+  const cumulativos = resolvidas.map((o) => (acumulado += deltaUSD(o)));
 
-  let html = `<div class="linha-zero"></div>`;
-  resolvidas.forEach((o, i) => {
-    const pontos = valores[i];
-    const alturaPx = Math.max((Math.abs(pontos) / maxAbs) * 96, 4);
-    const classe = pontos >= 0 ? "good" : "critical";
-    const posicao = pontos >= 0 ? `bottom:50%; height:${alturaPx}px;` : `top:50%; height:${alturaPx}px;`;
-    const titulo = `${formatarHorario(o.criado_em)} — ${o.resultado} (${formatarPontos(pontos)})`;
+  const minVal = Math.min(0, ...cumulativos);
+  const maxVal = Math.max(0, ...cumulativos);
+  const range = maxVal - minVal || 1;
+  const alturaContainer = 170;
+  const zeroBottomPx = ((0 - minVal) / range) * alturaContainer;
+
+  let html = `<div class="linha-zero" style="bottom:${zeroBottomPx}px;"></div>`;
+  cumulativos.forEach((valor, i) => {
+    const alturaPx = Math.max((Math.abs(valor) / range) * alturaContainer, 2);
+    const classe = valor >= 0 ? "good" : "critical";
+    const posicao =
+      valor >= 0
+        ? `bottom:${zeroBottomPx}px; height:${alturaPx}px;`
+        : `bottom:${zeroBottomPx - alturaPx}px; height:${alturaPx}px;`;
+    const titulo = `${formatarHorario(resolvidas[i].criado_em)} — Acumulado: ${formatarUSDValor(valor)}`;
     html += `<div class="barra ${classe}" style="position:absolute; ${posicao}" title="${titulo}"></div>`;
   });
+
+  const idxMinimo = cumulativos.indexOf(Math.min(...cumulativos));
+  const idxFinal = cumulativos.length - 1;
+  const valorMinimo = cumulativos[idxMinimo];
+  const valorFinal = cumulativos[idxFinal];
+
+  if (valorMinimo < 0) {
+    html += `<div class="rotulo-acumulado critical" style="left:${idxMinimo * 12 + 4}px; bottom:2px;">${formatarUSDContabil(valorMinimo)}</div>`;
+  }
+  html += `<div class="rotulo-acumulado ${valorFinal >= 0 ? "good" : "critical"}" style="left:${idxFinal * 12 + 4}px; bottom:${zeroBottomPx + Math.max((Math.abs(valorFinal) / range) * alturaContainer, 2) + 4}px;">${formatarUSDContabil(valorFinal)}</div>`;
 
   container.style.position = "relative";
   container.innerHTML = html;
@@ -184,7 +211,7 @@ function renderBarras(operacoes) {
   barras.forEach((b, i) => {
     b.style.left = `${i * 12 + 4}px`;
   });
-  container.style.minWidth = `${resolvidas.length * 12 + 8}px`;
+  container.style.minWidth = `${resolvidas.length * 12 + 60}px`;
 }
 
 let ultimasTentativas = [];

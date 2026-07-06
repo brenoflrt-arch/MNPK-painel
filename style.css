@@ -178,9 +178,10 @@ main {
   gap: 2px;
   height: 200px;
   border-bottom: 1px solid var(--gridline);
-  padding: 0 4px;
+  padding: 24px 4px 0;
   position: relative;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .barra {
@@ -218,6 +219,17 @@ main {
   bottom: 50%;
   border-top: 1px dashed var(--gridline);
 }
+
+.rotulo-acumulado {
+  position: absolute;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-30%);
+}
+
+.rotulo-acumulado.good { color: var(--good); }
+.rotulo-acumulado.critical { color: var(--critical); }
 
 /* ---- Login ---- */
 
