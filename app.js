@@ -34,7 +34,7 @@ const USD_POR_PONTO = CONTRATOS_POR_OPERACAO * VALOR_POR_PONTO_USD;
 function formatarUSD(pontos) {
   const valor = pontos * USD_POR_PONTO;
   const sinal = valor > 0 ? "+" : valor < 0 ? "-" : "";
-  return `${sinal}$${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${sinal}US$ ${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 async function buscarDadosPublicos() {
