@@ -219,12 +219,95 @@ main {
   border-top: 1px dashed var(--gridline);
 }
 
+/* ---- Login ---- */
+
+.login-card {
+  max-width: 360px;
+  margin: 0 auto;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+}
+
+.login-card h2 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.login-card p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+}
+
+#login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#login-form input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+
+#login-form button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#login-form button:hover {
+  opacity: 0.9;
+}
+
+.login-erro {
+  color: var(--critical);
+  font-size: 0.8rem;
+  margin: 0 !important;
+  min-height: 1em;
+}
+
 /* ---- Tabelas ---- */
 
 .tabelas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 16px;
+}
+
+.tabelas-topo {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+#btn-sair {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+#btn-sair:hover {
+  color: var(--text-primary);
 }
 
 .tabela-card {

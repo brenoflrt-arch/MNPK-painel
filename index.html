@@ -33,7 +33,21 @@
     </div>
   </section>
 
-  <section class="tabelas-grid">
+  <section class="login-card" id="login-card">
+    <h2>Área restrita</h2>
+    <p>Faça login para ver as tabelas Protocolo 70% e Protocolo 100%.</p>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
+      <input type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" required />
+      <button type="submit">Entrar</button>
+      <p class="login-erro" id="login-erro"></p>
+    </form>
+  </section>
+
+  <section class="tabelas-grid" id="tabelas-grid" hidden>
+    <div class="tabelas-topo">
+      <button id="btn-sair">Sair</button>
+    </div>
     <div class="tabela-card">
       <h2>Protocolo 70%</h2>
       <div class="tabela-scroll">
@@ -78,6 +92,7 @@
   <p>Atualiza automaticamente a cada 30s · Dados via Supabase</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>

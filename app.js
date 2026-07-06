@@ -1,7 +1,4 @@
-const CABECALHOS = {
-  apikey: SUPABASE_PUBLISHABLE_KEY,
-  Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-};
+const supabaseCliente = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const RESULTADO_LUCRO = "LUCRO";
 const RESULTADO_PREJUIZO = "PREJUÍZO";
@@ -30,19 +27,29 @@ function formatarPontos(valor) {
   return `${sinal}${valor.toFixed(2)} pts`;
 }
 
-async function buscarDados() {
+async function buscarDadosPublicos() {
+  const { data, error } = await supabaseCliente
+    .from("operacoes_publicas")
+    .select("*")
+    .order("criado_em", { ascending: false })
+    .limit(300);
+
+  if (error) throw error;
+  return data;
+}
+
+async function buscarDadosPrivados() {
   const [respTentativas, respOperacoes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/tentativas_2?select=*&order=criado_em.desc&limit=300`, { headers: CABECALHOS }),
-    fetch(`${SUPABASE_URL}/rest/v1/operacoes_ficticias?select=*&order=criado_em.desc&limit=300`, { headers: CABECALHOS }),
+    supabaseCliente.from("tentativas_2").select("*").order("criado_em", { ascending: false }).limit(300),
+    supabaseCliente.from("operacoes_ficticias").select("*").order("criado_em", { ascending: false }).limit(300),
   ]);
 
-  if (!respTentativas.ok || !respOperacoes.ok) {
-    throw new Error("Falha ao consultar o Supabase");
-  }
+  if (respTentativas.error) throw respTentativas.error;
+  if (respOperacoes.error) throw respOperacoes.error;
 
   return {
-    tentativas: await respTentativas.json(),
-    operacoes: await respOperacoes.json(),
+    tentativas: respTentativas.data,
+    operacoes: respOperacoes.data,
   };
 }
 
@@ -218,16 +225,14 @@ function renderTabelaOperacoes(operacoes) {
     .join("");
 }
 
-async function atualizarTudo() {
+async function atualizarPublico() {
   try {
-    const { tentativas, operacoes } = await buscarDados();
+    const operacoes = await buscarDadosPublicos();
     const stats = calcularEstatisticas(operacoes);
 
     renderCards(stats);
     renderPizza(stats);
     renderBarras(operacoes);
-    renderTabelaTentativas(tentativas);
-    renderTabelaOperacoes(operacoes);
 
     document.getElementById("ultima-atualizacao").textContent =
       "Última atualização: " + new Date().toLocaleTimeString("pt-BR");
@@ -236,6 +241,53 @@ async function atualizarTudo() {
       "Erro ao carregar dados: " + erro.message;
   }
 }
+
+async function atualizarPrivado() {
+  try {
+    const { tentativas, operacoes } = await buscarDadosPrivados();
+    renderTabelaTentativas(tentativas);
+    renderTabelaOperacoes(operacoes);
+  } catch (erro) {
+    console.error("Erro ao carregar dados privados:", erro.message);
+  }
+}
+
+async function atualizarTudo() {
+  const { data: { session } } = await supabaseCliente.auth.getSession();
+  await atualizarPublico();
+  if (session) await atualizarPrivado();
+}
+
+function mostrarAreaLogada(logado) {
+  document.getElementById("login-card").hidden = logado;
+  document.getElementById("tabelas-grid").hidden = !logado;
+}
+
+supabaseCliente.auth.getSession().then(({ data: { session } }) => {
+  mostrarAreaLogada(!!session);
+});
+
+supabaseCliente.auth.onAuthStateChange((_evento, session) => {
+  mostrarAreaLogada(!!session);
+  if (session) atualizarPrivado();
+});
+
+document.getElementById("login-form").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  const email = document.getElementById("login-email").value.trim();
+  const senha = document.getElementById("login-senha").value;
+  const erroEl = document.getElementById("login-erro");
+  erroEl.textContent = "";
+
+  const { error } = await supabaseCliente.auth.signInWithPassword({ email, password: senha });
+  if (error) {
+    erroEl.textContent = "Login inválido: " + error.message;
+  }
+});
+
+document.getElementById("btn-sair").addEventListener("click", async () => {
+  await supabaseCliente.auth.signOut();
+});
 
 atualizarTudo();
 setInterval(atualizarTudo, 30000);
