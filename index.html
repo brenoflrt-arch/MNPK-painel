@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel NQ/MNQ — Times &amp; Sales</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topo">
+  <h1>Relatório de Performance — NQ/MNQ</h1>
+  <p class="subtitulo">Detecção de padrão via Times &amp; Sales — operações fictícias (não é execução real)</p>
+  <p class="atualizado" id="ultima-atualizacao">Carregando dados…</p>
+</header>
+
+<main>
+
+  <section class="cards-grid" id="cards-grid" aria-label="Resumo de performance">
+    <!-- preenchido via JS -->
+  </section>
+
+  <section class="charts-grid">
+    <div class="chart-card">
+      <h2>Lucro vs Prejuízo</h2>
+      <div class="pizza-wrap">
+        <div class="pizza" id="pizza"></div>
+        <ul class="legenda" id="pizza-legenda"></ul>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h2>Histórico de Resultados</h2>
+      <div class="barras" id="barras"></div>
+    </div>
+  </section>
+
+  <section class="tabelas-grid">
+    <div class="tabela-card">
+      <h2>2ª Tentativa Validada</h2>
+      <div class="tabela-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Região</th>
+              <th>Direção</th>
+              <th>Operação provável</th>
+              <th>Notificado</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-tentativas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tabela-card">
+      <h2>Operações Fictícias (3ª Tentativa)</h2>
+      <div class="tabela-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Entrada</th>
+              <th>Preço</th>
+              <th>Operação</th>
+              <th>Alvo</th>
+              <th>Stop</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-operacoes"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Atualiza automaticamente a cada 30s · Dados via Supabase</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
