@@ -27,6 +27,16 @@ function formatarPontos(valor) {
   return `${sinal}${valor.toFixed(2)} pts`;
 }
 
+const CONTRATOS_POR_OPERACAO = 5;
+const VALOR_POR_PONTO_USD = 2;
+const USD_POR_PONTO = CONTRATOS_POR_OPERACAO * VALOR_POR_PONTO_USD;
+
+function formatarUSD(pontos) {
+  const valor = pontos * USD_POR_PONTO;
+  const sinal = valor > 0 ? "+" : valor < 0 ? "-" : "";
+  return `${sinal}$${Math.abs(valor).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 async function buscarDadosPublicos() {
   const { data, error } = await supabaseCliente
     .from("operacoes_publicas")
@@ -99,18 +109,21 @@ function renderCards(stats) {
       ${linha("Em andamento", stats.pendentes)}
       ${linha("Taxa de acerto", stats.taxaAcerto.toFixed(1) + "%")}
       ${linha("Pontuação total", formatarPontos(stats.pontosTotais), stats.pontosTotais >= 0 ? "good" : "critical")}
+      ${linha("Resultado total", formatarUSD(stats.pontosTotais), stats.pontosTotais >= 0 ? "good" : "critical")}
       ${linha("Tempo médio de operação", formatarDuracao(stats.duracaoMediaGeral))}
     </div>
     <div class="card">
       <h3>Operações com lucro</h3>
       ${linha("Total de operações", stats.lucro.length)}
       ${linha("Pontos ganhos", "+" + stats.pontosGanhos.toFixed(2) + " pts", "good")}
+      ${linha("Ganhos", formatarUSD(stats.pontosGanhos), "good")}
       ${linha("Tempo médio até o alvo", formatarDuracao(stats.duracaoMediaLucro))}
     </div>
     <div class="card">
       <h3>Operações com prejuízo</h3>
       ${linha("Total de operações", stats.prejuizo.length)}
       ${linha("Pontos perdidos", "-" + stats.pontosPerdidos.toFixed(2) + " pts", "critical")}
+      ${linha("Perdas", formatarUSD(-stats.pontosPerdidos), "critical")}
       ${linha("Tempo médio até o stop", formatarDuracao(stats.duracaoMediaPrejuizo))}
     </div>
   `;
