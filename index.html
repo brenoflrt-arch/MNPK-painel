@@ -87,6 +87,25 @@
 
 </main>
 
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal">
+    <div class="modal-topo">
+      <h3 id="modal-titulo">Negociações da trava</h3>
+      <button id="modal-fechar" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-corpo">
+      <div class="modal-coluna">
+        <h4>1ª tentativa</h4>
+        <div class="ts-lista" id="modal-primeira"></div>
+      </div>
+      <div class="modal-coluna">
+        <h4>2ª tentativa</h4>
+        <div class="ts-lista" id="modal-segunda"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <p>Atualiza automaticamente a cada 30s · Dados via Supabase</p>
 </footer>

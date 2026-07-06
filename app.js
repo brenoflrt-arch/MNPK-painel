@@ -174,7 +174,10 @@ function renderBarras(operacoes) {
   container.style.minWidth = `${resolvidas.length * 12 + 8}px`;
 }
 
+let ultimasTentativas = [];
+
 function renderTabelaTentativas(tentativas) {
+  ultimasTentativas = tentativas;
   const corpo = document.getElementById("tabela-tentativas");
 
   if (tentativas.length === 0) {
@@ -183,11 +186,11 @@ function renderTabelaTentativas(tentativas) {
   }
 
   corpo.innerHTML = tentativas
-    .map((t) => {
+    .map((t, i) => {
       const direcaoTag = t.direcao === "compra" ? "compra" : "venda";
       const notificadoTag = t.notificado ? "sim" : "nao";
       return `
-        <tr>
+        <tr class="linha-clicavel" data-idx="${i}" title="Clique para ver as negociações">
           <td>${formatarHorario(t.criado_em)}</td>
           <td>${Number(t.regiao_preco).toFixed(2)}</td>
           <td><span class="tag ${direcaoTag}">${t.direcao === "compra" ? "Compra" : "Venda"}</span></td>
@@ -197,6 +200,49 @@ function renderTabelaTentativas(tentativas) {
     })
     .join("");
 }
+
+function renderListaNegociacoes(container, negociacoes) {
+  if (!negociacoes || negociacoes.length === 0) {
+    container.innerHTML = `<p style="color:var(--text-muted);font-size:0.82rem;">Sem detalhes registrados</p>`;
+    return;
+  }
+
+  container.innerHTML = negociacoes
+    .map(
+      (n) => `
+        <div class="ts-linha ${n.direcao === "compra" ? "compra" : "venda"}">
+          <span>${n.horario}</span>
+          <span>${Number(n.preco).toFixed(2)}</span>
+          <span>${n.quantidade}</span>
+        </div>`
+    )
+    .join("");
+}
+
+function abrirModalTentativa(tentativa) {
+  document.getElementById("modal-titulo").textContent =
+    `Trava — região ${Number(tentativa.regiao_preco).toFixed(2)} (${formatarHorario(tentativa.criado_em)})`;
+  renderListaNegociacoes(document.getElementById("modal-primeira"), tentativa.negociacoes_primeira_tentativa);
+  renderListaNegociacoes(document.getElementById("modal-segunda"), tentativa.negociacoes_segunda_tentativa);
+  document.getElementById("modal-backdrop").hidden = false;
+}
+
+document.getElementById("tabela-tentativas").addEventListener("click", (evento) => {
+  const linha = evento.target.closest("tr[data-idx]");
+  if (!linha) return;
+  const tentativa = ultimasTentativas[Number(linha.dataset.idx)];
+  if (tentativa) abrirModalTentativa(tentativa);
+});
+
+document.getElementById("modal-fechar").addEventListener("click", () => {
+  document.getElementById("modal-backdrop").hidden = true;
+});
+
+document.getElementById("modal-backdrop").addEventListener("click", (evento) => {
+  if (evento.target.id === "modal-backdrop") {
+    document.getElementById("modal-backdrop").hidden = true;
+  }
+});
 
 function renderTabelaOperacoes(operacoes) {
   const corpo = document.getElementById("tabela-operacoes");
