@@ -329,6 +329,15 @@ main {
   font-size: 0.72rem;
 }
 
+.tabela-compacta .trava-good { color: var(--good); }
+.tabela-compacta .trava-critical { color: var(--critical); }
+
+.tabela-compacta .trava-good .sub,
+.tabela-compacta .trava-critical .sub {
+  color: inherit;
+  opacity: 0.85;
+}
+
 .tabelas-grid[hidden] {
   display: none;
 }

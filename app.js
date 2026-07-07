@@ -349,6 +349,7 @@ function renderTabelaUnificada(tentativas) {
     .map((t) => {
       const primeira = calcularPrimeiraTrava(t.negociacoes_primeira_tentativa);
       const op = t.operacoes_ficticias && t.operacoes_ficticias[0];
+      const corProvavel = t.operacao_provavel === "compra" ? "good" : "critical";
 
       const celPrimeira = primeira
         ? `${primeira.horario}<span class="sub">${primeira.preco.toFixed(2)}</span>`
@@ -378,9 +379,9 @@ function renderTabelaUnificada(tentativas) {
 
       return `
         <tr>
-          <td>${celPrimeira}</td>
-          <td>${celSegunda}</td>
-          <td>${celTerceira}</td>
+          <td class="trava-${corProvavel}">${celPrimeira}</td>
+          <td class="trava-${corProvavel}">${celSegunda}</td>
+          <td class="trava-${corProvavel}">${celTerceira}</td>
           <td>${celOperacao}</td>
           <td>${celAlvo}</td>
           <td>${celStop}</td>
