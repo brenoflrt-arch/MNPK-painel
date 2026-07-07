@@ -57,17 +57,26 @@ async function buscarDadosPublicos() {
 }
 
 async function buscarDadosPrivados() {
-  const [respTentativas, respOperacoes] = await Promise.all([
+  const [respTentativas, respOperacoes, respUnificado] = await Promise.all([
     supabaseCliente.from("tentativas_2").select("*").order("criado_em", { ascending: false }).limit(300),
     supabaseCliente.from("operacoes_ficticias").select("*").order("criado_em", { ascending: false }).limit(300),
+    supabaseCliente
+      .from("tentativas_2")
+      .select(
+        "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_ficticias(id, criado_em, regiao_preco, operacao, alvo, stop, resultado)"
+      )
+      .order("criado_em", { ascending: false })
+      .limit(300),
   ]);
 
   if (respTentativas.error) throw respTentativas.error;
   if (respOperacoes.error) throw respOperacoes.error;
+  if (respUnificado.error) throw respUnificado.error;
 
   return {
     tentativas: respTentativas.data,
     operacoes: respOperacoes.data,
+    unificado: respUnificado.data,
   };
 }
 
@@ -311,6 +320,77 @@ function renderTabelaOperacoes(operacoes) {
     .join("");
 }
 
+function horaSomente(dataIso) {
+  if (!dataIso) return "—";
+  return new Date(dataIso).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function calcularPrimeiraTrava(negociacoes) {
+  if (!negociacoes || negociacoes.length === 0) return null;
+  const ultimo = negociacoes[negociacoes.length - 1];
+  const base = negociacoes.length > 1 ? negociacoes.slice(0, -1) : negociacoes;
+  const precoMedio = base.reduce((soma, n) => soma + n.preco, 0) / base.length;
+  return { horario: (ultimo.horario || "").slice(0, 8), preco: precoMedio };
+}
+
+function renderTabelaUnificada(tentativas) {
+  const corpo = document.getElementById("tabela-unificada");
+
+  if (!tentativas || tentativas.length === 0) {
+    corpo.innerHTML = `<tr><td colspan="8" class="vazio">Nenhum registro ainda</td></tr>`;
+    return;
+  }
+
+  corpo.innerHTML = tentativas
+    .map((t) => {
+      const primeira = calcularPrimeiraTrava(t.negociacoes_primeira_tentativa);
+      const op = t.operacoes_ficticias && t.operacoes_ficticias[0];
+
+      const celPrimeira = primeira
+        ? `${primeira.horario}<span class="sub">${primeira.preco.toFixed(2)}</span>`
+        : "(-)";
+      const celSegunda = `${horaSomente(t.criado_em)}<span class="sub">${Number(t.regiao_preco).toFixed(2)}</span>`;
+      const celTerceira = op
+        ? `${horaSomente(op.criado_em)}<span class="sub">${Number(op.regiao_preco).toFixed(2)}</span>`
+        : "(-)";
+
+      let celOperacao = "(-)";
+      if (op) {
+        const simbolo = op.operacao === "compra" ? "C" : "V";
+        celOperacao = `<span class="tag ${op.operacao === "compra" ? "compra" : "venda"}">${simbolo} ${Number(op.regiao_preco).toFixed(2)}</span>`;
+      }
+
+      const celAlvo = op ? Number(op.alvo).toFixed(2) : "(-)";
+      const celStop = op ? Number(op.stop).toFixed(2) : "(-)";
+
+      let celResultado = "(-)";
+      if (op) {
+        if (op.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
+        else if (op.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
+        else celResultado = `<span class="tag pendente">Em andamento</span>`;
+      }
+
+      const celNotificacao = `<span class="tag ${t.notificado ? "sim" : "nao"}">${t.notificado ? "Sim" : "Não"}</span>`;
+
+      return `
+        <tr>
+          <td>${celPrimeira}</td>
+          <td>${celSegunda}</td>
+          <td>${celTerceira}</td>
+          <td>${celOperacao}</td>
+          <td>${celAlvo}</td>
+          <td>${celStop}</td>
+          <td>${celResultado}</td>
+          <td>${celNotificacao}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
 async function atualizarPublico() {
   try {
     const operacoes = await buscarDadosPublicos();
@@ -330,9 +410,10 @@ async function atualizarPublico() {
 
 async function atualizarPrivado() {
   try {
-    const { tentativas, operacoes } = await buscarDadosPrivados();
+    const { tentativas, operacoes, unificado } = await buscarDadosPrivados();
     renderTabelaTentativas(tentativas);
     renderTabelaOperacoes(operacoes);
+    renderTabelaUnificada(unificado);
   } catch (erro) {
     console.error("Erro ao carregar dados privados:", erro.message);
   }

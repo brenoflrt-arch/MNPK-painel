@@ -308,6 +308,27 @@ main {
   }
 }
 
+.tabela-card-full {
+  grid-column: 1 / -1;
+}
+
+.tabela-compacta {
+  font-size: 0.76rem;
+}
+
+.tabela-compacta td,
+.tabela-compacta th {
+  padding: 6px 8px;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.tabela-compacta .sub {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
 .tabelas-grid[hidden] {
   display: none;
 }
