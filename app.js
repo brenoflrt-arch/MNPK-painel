@@ -27,6 +27,10 @@ function formatarPontos(valor) {
   return `${sinal}${valor.toFixed(2)} pts`;
 }
 
+function formatarPreco(valor) {
+  return Number(valor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 const CONTRATOS_POR_OPERACAO = 5;
 const VALOR_POR_PONTO_USD = 2;
 const USD_POR_PONTO = CONTRATOS_POR_OPERACAO * VALOR_POR_PONTO_USD;
@@ -241,7 +245,7 @@ function renderTabelaTentativas(tentativas) {
       return `
         <tr class="linha-clicavel" data-idx="${i}" title="Clique para ver as negociações">
           <td>${formatarHorario(t.criado_em)}</td>
-          <td>${Number(t.regiao_preco).toFixed(2)}</td>
+          <td>${formatarPreco(t.regiao_preco)}</td>
           <td><span class="tag ${direcaoTag}">${t.direcao === "compra" ? "Compra" : "Venda"}</span></td>
           <td><span class="tag ${t.operacao_provavel === "compra" ? "compra" : "venda"}">${t.operacao_provavel === "compra" ? "Compra" : "Venda"}</span></td>
           <td><span class="tag ${notificadoTag}">${t.notificado ? "Sim" : "Não"}</span></td>
@@ -261,7 +265,7 @@ function renderListaNegociacoes(container, negociacoes) {
       (n) => `
         <div class="ts-linha ${n.direcao === "compra" ? "compra" : "venda"}">
           <span>${n.horario}</span>
-          <span>${Number(n.preco).toFixed(2)}</span>
+          <span>${formatarPreco(n.preco)}</span>
           <span>${n.quantidade}</span>
         </div>`
     )
@@ -270,7 +274,7 @@ function renderListaNegociacoes(container, negociacoes) {
 
 function abrirModalTentativa(tentativa) {
   document.getElementById("modal-titulo").textContent =
-    `Trava — região ${Number(tentativa.regiao_preco).toFixed(2)} (${formatarHorario(tentativa.criado_em)})`;
+    `Trava — região ${formatarPreco(tentativa.regiao_preco)} (${formatarHorario(tentativa.criado_em)})`;
   renderListaNegociacoes(document.getElementById("modal-primeira"), tentativa.negociacoes_primeira_tentativa);
   renderListaNegociacoes(document.getElementById("modal-segunda"), tentativa.negociacoes_segunda_tentativa);
   document.getElementById("modal-backdrop").hidden = false;
@@ -310,10 +314,10 @@ function renderTabelaOperacoes(operacoes) {
       return `
         <tr>
           <td>${formatarHorario(o.criado_em)}</td>
-          <td>${Number(o.regiao_preco).toFixed(2)}</td>
+          <td>${formatarPreco(o.regiao_preco)}</td>
           <td><span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span></td>
-          <td>${Number(o.alvo).toFixed(2)}</td>
-          <td>${Number(o.stop).toFixed(2)}</td>
+          <td>${formatarPreco(o.alvo)}</td>
+          <td>${formatarPreco(o.stop)}</td>
           <td>${resultadoTag}</td>
         </tr>`;
     })
@@ -352,21 +356,21 @@ function renderTabelaUnificada(tentativas) {
       const corProvavel = t.operacao_provavel === "compra" ? "good" : "critical";
 
       const celPrimeira = primeira
-        ? `${primeira.horario}<span class="sub">${primeira.preco.toFixed(2)}</span>`
+        ? `${primeira.horario}<span class="sub">${formatarPreco(primeira.preco)}</span>`
         : "(-)";
-      const celSegunda = `${horaSomente(t.criado_em)}<span class="sub">${Number(t.regiao_preco).toFixed(2)}</span>`;
+      const celSegunda = `${horaSomente(t.criado_em)}<span class="sub">${formatarPreco(t.regiao_preco)}</span>`;
       const celTerceira = op
-        ? `${horaSomente(op.criado_em)}<span class="sub">${Number(op.regiao_preco).toFixed(2)}</span>`
+        ? `${horaSomente(op.criado_em)}<span class="sub">${formatarPreco(op.regiao_preco)}</span>`
         : "(-)";
 
       let celOperacao = "(-)";
       if (op) {
         const simbolo = op.operacao === "compra" ? "C" : "V";
-        celOperacao = `<span class="tag ${op.operacao === "compra" ? "compra" : "venda"}">${simbolo} ${Number(op.regiao_preco).toFixed(2)}</span>`;
+        celOperacao = `<span class="tag ${op.operacao === "compra" ? "compra" : "venda"}">${simbolo} ${formatarPreco(op.regiao_preco)}</span>`;
       }
 
-      const celAlvo = op ? Number(op.alvo).toFixed(2) : "(-)";
-      const celStop = op ? Number(op.stop).toFixed(2) : "(-)";
+      const celAlvo = op ? formatarPreco(op.alvo) : "(-)";
+      const celStop = op ? formatarPreco(op.stop) : "(-)";
 
       let celResultado = "(-)";
       if (op) {
