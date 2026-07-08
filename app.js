@@ -60,6 +60,21 @@ async function buscarDadosPublicos() {
   return data;
 }
 
+async function buscarCotacaoAtual() {
+  const { data, error } = await supabaseCliente.from("cotacao_atual").select("*").eq("id", 1).single();
+  if (error) throw error;
+  return data;
+}
+
+function renderCotacao(cotacao) {
+  const el = document.getElementById("cotacao-atual");
+  if (!cotacao) {
+    el.textContent = "";
+    return;
+  }
+  el.innerHTML = `<span class="ticker">${cotacao.ticker}</span>${formatarPreco(cotacao.preco)}`;
+}
+
 async function buscarDadosPrivados() {
   const [respTentativas, respOperacoes, respUnificado] = await Promise.all([
     supabaseCliente.from("tentativas_2").select("*").order("criado_em", { ascending: false }).limit(300),
@@ -404,6 +419,12 @@ async function atualizarPublico() {
     renderCards(stats);
     renderPizza(stats);
     renderBarras(operacoes);
+
+    try {
+      renderCotacao(await buscarCotacaoAtual());
+    } catch (erroCotacao) {
+      console.error("Erro ao carregar cotação:", erroCotacao.message);
+    }
 
     document.getElementById("ultima-atualizacao").textContent =
       "Última atualização: " + new Date().toLocaleTimeString("pt-BR");

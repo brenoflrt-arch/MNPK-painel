@@ -47,6 +47,20 @@ body {
   margin: 0;
 }
 
+.cotacao {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0;
+  color: var(--text-primary);
+}
+
+.cotacao .ticker {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
 main {
   max-width: 1200px;
   margin: 0 auto;
