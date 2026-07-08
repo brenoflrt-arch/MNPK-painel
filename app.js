@@ -76,25 +76,17 @@ function renderCotacao(cotacao) {
 }
 
 async function buscarDadosPrivados() {
-  const [respTentativas, respOperacoes, respUnificado] = await Promise.all([
-    supabaseCliente.from("tentativas_2").select("*").order("criado_em", { ascending: false }).limit(300),
-    supabaseCliente.from("operacoes_ficticias").select("*").order("criado_em", { ascending: false }).limit(300),
-    supabaseCliente
-      .from("tentativas_2")
-      .select(
-        "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_ficticias(id, criado_em, regiao_preco, operacao, alvo, stop, resultado)"
-      )
-      .order("criado_em", { ascending: false })
-      .limit(300),
-  ]);
+  const respUnificado = await supabaseCliente
+    .from("tentativas_2")
+    .select(
+      "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_ficticias(id, criado_em, regiao_preco, operacao, alvo, stop, resultado)"
+    )
+    .order("criado_em", { ascending: false })
+    .limit(300);
 
-  if (respTentativas.error) throw respTentativas.error;
-  if (respOperacoes.error) throw respOperacoes.error;
   if (respUnificado.error) throw respUnificado.error;
 
   return {
-    tentativas: respTentativas.data,
-    operacoes: respOperacoes.data,
     unificado: respUnificado.data,
   };
 }
@@ -242,103 +234,6 @@ function renderBarras(operacoes) {
   container.style.minWidth = `${resolvidas.length * 12 + 60}px`;
 }
 
-let ultimasTentativas = [];
-
-function renderTabelaTentativas(tentativas) {
-  ultimasTentativas = tentativas;
-  const corpo = document.getElementById("tabela-tentativas");
-
-  if (tentativas.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
-    return;
-  }
-
-  corpo.innerHTML = tentativas
-    .map((t, i) => {
-      const direcaoTag = t.direcao === "compra" ? "compra" : "venda";
-      const notificadoTag = t.notificado ? "sim" : "nao";
-      return `
-        <tr class="linha-clicavel" data-idx="${i}" title="Clique para ver as negociações">
-          <td>${formatarHorario(t.criado_em)}</td>
-          <td>${formatarPreco(t.regiao_preco)}</td>
-          <td><span class="tag ${direcaoTag}">${t.direcao === "compra" ? "Compra" : "Venda"}</span></td>
-          <td><span class="tag ${t.operacao_provavel === "compra" ? "compra" : "venda"}">${t.operacao_provavel === "compra" ? "Compra" : "Venda"}</span></td>
-          <td><span class="tag ${notificadoTag}">${t.notificado ? "Sim" : "Não"}</span></td>
-        </tr>`;
-    })
-    .join("");
-}
-
-function renderListaNegociacoes(container, negociacoes) {
-  if (!negociacoes || negociacoes.length === 0) {
-    container.innerHTML = `<p style="color:var(--text-muted);font-size:0.82rem;">Sem detalhes registrados</p>`;
-    return;
-  }
-
-  container.innerHTML = negociacoes
-    .map(
-      (n) => `
-        <div class="ts-linha ${n.direcao === "compra" ? "compra" : "venda"}">
-          <span>${n.horario}</span>
-          <span>${formatarPreco(n.preco)}</span>
-          <span>${n.quantidade}</span>
-        </div>`
-    )
-    .join("");
-}
-
-function abrirModalTentativa(tentativa) {
-  document.getElementById("modal-titulo").textContent =
-    `Trava — região ${formatarPreco(tentativa.regiao_preco)} (${formatarHorario(tentativa.criado_em)})`;
-  renderListaNegociacoes(document.getElementById("modal-primeira"), tentativa.negociacoes_primeira_tentativa);
-  renderListaNegociacoes(document.getElementById("modal-segunda"), tentativa.negociacoes_segunda_tentativa);
-  document.getElementById("modal-backdrop").hidden = false;
-}
-
-document.getElementById("tabela-tentativas").addEventListener("click", (evento) => {
-  const linha = evento.target.closest("tr[data-idx]");
-  if (!linha) return;
-  const tentativa = ultimasTentativas[Number(linha.dataset.idx)];
-  if (tentativa) abrirModalTentativa(tentativa);
-});
-
-document.getElementById("modal-fechar").addEventListener("click", () => {
-  document.getElementById("modal-backdrop").hidden = true;
-});
-
-document.getElementById("modal-backdrop").addEventListener("click", (evento) => {
-  if (evento.target.id === "modal-backdrop") {
-    document.getElementById("modal-backdrop").hidden = true;
-  }
-});
-
-function renderTabelaOperacoes(operacoes) {
-  const corpo = document.getElementById("tabela-operacoes");
-
-  if (operacoes.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="6" class="vazio">Nenhum registro ainda</td></tr>`;
-    return;
-  }
-
-  corpo.innerHTML = operacoes
-    .map((o) => {
-      let resultadoTag = `<span class="tag pendente">Em andamento</span>`;
-      if (o.resultado === RESULTADO_LUCRO) resultadoTag = `<span class="tag lucro">Lucro</span>`;
-      else if (o.resultado === RESULTADO_PREJUIZO) resultadoTag = `<span class="tag prejuizo">Prejuízo</span>`;
-
-      return `
-        <tr>
-          <td>${formatarHorario(o.criado_em)}</td>
-          <td>${formatarPreco(o.regiao_preco)}</td>
-          <td><span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span></td>
-          <td>${formatarPreco(o.alvo)}</td>
-          <td>${formatarPreco(o.stop)}</td>
-          <td>${resultadoTag}</td>
-        </tr>`;
-    })
-    .join("");
-}
-
 function horaSomente(dataIso) {
   if (!dataIso) return "—";
   return new Date(dataIso).toLocaleTimeString("pt-BR", {
@@ -436,9 +331,7 @@ async function atualizarPublico() {
 
 async function atualizarPrivado() {
   try {
-    const { tentativas, operacoes, unificado } = await buscarDadosPrivados();
-    renderTabelaTentativas(tentativas);
-    renderTabelaOperacoes(operacoes);
+    const { unificado } = await buscarDadosPrivados();
     renderTabelaUnificada(unificado);
   } catch (erro) {
     console.error("Erro ao carregar dados privados:", erro.message);
