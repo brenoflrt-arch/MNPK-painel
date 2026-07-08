@@ -75,8 +75,8 @@ function renderCotacao(cotacao) {
   el.innerHTML = `<span class="ticker">${cotacao.ticker}</span>${formatarPreco(cotacao.preco)}`;
 }
 
-async function buscarDadosPrivados() {
-  const respUnificado = await supabaseCliente
+async function buscarTentativasUnificadas() {
+  const { data, error } = await supabaseCliente
     .from("tentativas_2")
     .select(
       "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_ficticias(id, criado_em, regiao_preco, operacao, alvo, stop, resultado)"
@@ -84,11 +84,19 @@ async function buscarDadosPrivados() {
     .order("criado_em", { ascending: false })
     .limit(300);
 
-  if (respUnificado.error) throw respUnificado.error;
+  if (error) throw error;
+  return data;
+}
 
-  return {
-    unificado: respUnificado.data,
-  };
+async function buscarExecucoesReais() {
+  const { data, error } = await supabaseCliente
+    .from("operacoes_reais")
+    .select("*")
+    .order("criado_em", { ascending: false })
+    .limit(300);
+
+  if (error) throw error;
+  return data;
 }
 
 function calcularEstatisticas(operacoes) {
@@ -306,6 +314,45 @@ function renderTabelaUnificada(tentativas) {
     .join("");
 }
 
+function renderTabelaExecucoesReais(execucoes) {
+  const corpo = document.getElementById("tabela-execucoes-reais");
+
+  if (!execucoes || execucoes.length === 0) {
+    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    return;
+  }
+
+  corpo.innerHTML = execucoes
+    .map((e) => {
+      const corOperacao = e.operacao === "compra" ? "good" : "critical";
+
+      const celTrava = e.regiao_3_trava != null
+        ? `${horaSomente(e.criado_em)}<span class="sub">${formatarPreco(e.regiao_3_trava)}</span>`
+        : "(-)";
+
+      const celOperacao = e.operacao
+        ? `<span class="tag ${e.operacao === "compra" ? "compra" : "venda"}">${e.operacao === "compra" ? "Compra" : "Venda"}</span>`
+        : "(-)";
+
+      let celResultado = `<span class="tag pendente">Em andamento</span>`;
+      if (e.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
+      else if (e.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
+
+      const celNivel = `
+        Python: ${e.regiao_3_trava != null ? formatarPreco(e.regiao_3_trava) : "(-)"}
+        <span class="sub">Ninja: ${e.preco_executado_ninja != null ? formatarPreco(e.preco_executado_ninja) : "(-)"}</span>`;
+
+      return `
+        <tr>
+          <td class="trava-${corOperacao}">${celTrava}</td>
+          <td>${celOperacao}</td>
+          <td>${celResultado}</td>
+          <td>${celNivel}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
 async function atualizarPublico() {
   try {
     const operacoes = await buscarDadosPublicos();
@@ -331,10 +378,15 @@ async function atualizarPublico() {
 
 async function atualizarPrivado() {
   try {
-    const { unificado } = await buscarDadosPrivados();
-    renderTabelaUnificada(unificado);
+    renderTabelaUnificada(await buscarTentativasUnificadas());
   } catch (erro) {
-    console.error("Erro ao carregar dados privados:", erro.message);
+    console.error("Erro ao carregar tentativas unificadas:", erro.message);
+  }
+
+  try {
+    renderTabelaExecucoesReais(await buscarExecucoesReais());
+  } catch (erro) {
+    console.error("Erro ao carregar execuções reais:", erro.message);
   }
 }
 
