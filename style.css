@@ -365,11 +365,19 @@ main {
   min-height: 32px;
 }
 
-.tabelas-topo .cotacao {
+.tabelas-topo .cotacao-bloco {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  text-align: center;
+}
+
+.tabelas-topo .cotacao {
   margin: 0;
+}
+
+.tabelas-topo .atualizado {
+  margin: 2px 0 0;
 }
 
 #btn-sair {
