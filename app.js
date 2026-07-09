@@ -88,9 +88,9 @@ async function buscarTentativasUnificadas() {
   return data;
 }
 
-async function buscarExecucoesReais() {
+async function buscarExecucoesReais(tabela = "operacoes_reais") {
   const { data, error } = await supabaseCliente
-    .from("operacoes_reais")
+    .from(tabela)
     .select("*, tentativas_2(criado_em, regiao_preco)")
     .order("criado_em", { ascending: false })
     .limit(300);
@@ -319,8 +319,8 @@ function renderTabelaUnificada(tentativas) {
     .join("");
 }
 
-function renderTabelaExecucoesReais(execucoes) {
-  const corpo = document.getElementById("tabela-execucoes-reais");
+function renderTabelaExecucoesReais(execucoes, corpoId = "tabela-execucoes-reais") {
+  const corpo = document.getElementById(corpoId);
 
   if (!execucoes || execucoes.length === 0) {
     corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
@@ -393,11 +393,12 @@ async function atualizarPrivado() {
     console.error("Erro ao carregar tentativas unificadas:", erro.message);
   }
 
-  try {
-    const execucoes = await buscarExecucoesReais();
-    renderTabelaExecucoesReais(execucoes);
+  const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
 
-    const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
+  try {
+    const execucoes = await buscarExecucoesReais("operacoes_reais");
+    renderTabelaExecucoesReais(execucoes, "tabela-execucoes-reais");
+
     const statsExecucao = calcularEstatisticas(execucoes, pontosDe, pontosDe);
     renderCards(statsExecucao, "cards-grid-execucao");
     renderPizza(statsExecucao, "pizza-execucao", "pizza-legenda-execucao");
@@ -408,6 +409,22 @@ async function atualizarPrivado() {
     );
   } catch (erro) {
     console.error("Erro ao carregar operações:", erro.message);
+  }
+
+  try {
+    const execucoesNoturna = await buscarExecucoesReais("operacoes_reais_noturna");
+    renderTabelaExecucoesReais(execucoesNoturna, "tabela-execucoes-reais-noturna");
+
+    const statsExecucaoNoturna = calcularEstatisticas(execucoesNoturna, pontosDe, pontosDe);
+    renderCards(statsExecucaoNoturna, "cards-grid-execucao-noturna");
+    renderPizza(statsExecucaoNoturna, "pizza-execucao-noturna", "pizza-legenda-execucao-noturna");
+    renderBarras(
+      execucoesNoturna,
+      "barras-execucao-noturna",
+      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
+    );
+  } catch (erro) {
+    console.error("Erro ao carregar operações noturnas:", erro.message);
   }
 }
 
