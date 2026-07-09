@@ -358,8 +358,18 @@ main {
 
 .tabelas-topo {
   grid-column: 1 / -1;
+  position: relative;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  min-height: 32px;
+}
+
+.tabelas-topo .cotacao {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
 }
 
 #btn-sair {
