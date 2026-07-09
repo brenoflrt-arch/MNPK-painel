@@ -99,15 +99,18 @@ async function buscarExecucoesReais() {
   return data;
 }
 
-function calcularEstatisticas(operacoes) {
+function calcularEstatisticas(
+  operacoes,
+  pontosGanhoDe = (o) => Math.abs(o.alvo - o.regiao_preco),
+  pontosPerdaDe = (o) => Math.abs(o.stop - o.regiao_preco)
+) {
   const resolvidas = operacoes.filter((o) => o.resultado);
   const pendentes = operacoes.length - resolvidas.length;
   const lucro = resolvidas.filter((o) => o.resultado === RESULTADO_LUCRO);
   const prejuizo = resolvidas.filter((o) => o.resultado === RESULTADO_PREJUIZO);
 
-  const pontosDe = (o) => Math.abs(o.alvo - o.regiao_preco);
-  const pontosGanhos = lucro.reduce((soma, o) => soma + pontosDe(o), 0);
-  const pontosPerdidos = prejuizo.reduce((soma, o) => soma + Math.abs(o.stop - o.regiao_preco), 0);
+  const pontosGanhos = lucro.reduce((soma, o) => soma + pontosGanhoDe(o), 0);
+  const pontosPerdidos = prejuizo.reduce((soma, o) => soma + pontosPerdaDe(o), 0);
 
   const duracaoSegundos = (o) => (new Date(o.resolvido_em) - new Date(o.criado_em)) / 1000;
   const mediaDuracao = (lista) =>
@@ -131,8 +134,8 @@ function calcularEstatisticas(operacoes) {
   };
 }
 
-function renderCards(stats) {
-  const grid = document.getElementById("cards-grid");
+function renderCards(stats, gridId = "cards-grid") {
+  const grid = document.getElementById(gridId);
 
   const linha = (rotulo, valor, classe = "") =>
     `<div class="linha"><span class="rotulo">${rotulo}</span><span class="valor ${classe}">${valor}</span></div>`;
@@ -165,9 +168,9 @@ function renderCards(stats) {
   `;
 }
 
-function renderPizza(stats) {
-  const pizza = document.getElementById("pizza");
-  const legenda = document.getElementById("pizza-legenda");
+function renderPizza(stats, pizzaId = "pizza", legendaId = "pizza-legenda") {
+  const pizza = document.getElementById(pizzaId);
+  const legenda = document.getElementById(legendaId);
   const totalResolvidas = stats.lucro.length + stats.prejuizo.length;
 
   if (totalResolvidas === 0) {
@@ -187,18 +190,20 @@ function renderPizza(stats) {
   `;
 }
 
-function renderBarras(operacoes) {
-  const container = document.getElementById("barras");
+function renderBarras(
+  operacoes,
+  containerId = "barras",
+  deltaUSD = (o) =>
+    (o.resultado === RESULTADO_LUCRO ? Math.abs(o.alvo - o.regiao_preco) : -Math.abs(o.stop - o.regiao_preco)) *
+    USD_POR_PONTO
+) {
+  const container = document.getElementById(containerId);
   const resolvidas = operacoes.filter((o) => o.resultado).slice().reverse(); // cronologico
 
   if (resolvidas.length === 0) {
     container.innerHTML = `<p style="margin:auto;color:var(--text-muted);font-size:0.85rem;">Nenhuma operação resolvida ainda</p>`;
     return;
   }
-
-  const deltaUSD = (o) =>
-    (o.resultado === RESULTADO_LUCRO ? Math.abs(o.alvo - o.regiao_preco) : -Math.abs(o.stop - o.regiao_preco)) *
-    USD_POR_PONTO;
 
   let acumulado = 0;
   const cumulativos = resolvidas.map((o) => (acumulado += deltaUSD(o)));
@@ -389,7 +394,18 @@ async function atualizarPrivado() {
   }
 
   try {
-    renderTabelaExecucoesReais(await buscarExecucoesReais());
+    const execucoes = await buscarExecucoesReais();
+    renderTabelaExecucoesReais(execucoes);
+
+    const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
+    const statsExecucao = calcularEstatisticas(execucoes, pontosDe, pontosDe);
+    renderCards(statsExecucao, "cards-grid-execucao");
+    renderPizza(statsExecucao, "pizza-execucao", "pizza-legenda-execucao");
+    renderBarras(
+      execucoes,
+      "barras-execucao",
+      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
+    );
   } catch (erro) {
     console.error("Erro ao carregar operações:", erro.message);
   }
