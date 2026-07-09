@@ -355,24 +355,24 @@ function renderTabelaExecucoesReais(execucoes) {
         ? `${horaSomente(e.criado_em)}<span class="sub">${formatarPreco(e.regiao_3_trava)}</span>`
         : "(-)";
 
-      const celOperacao = e.operacao
-        ? `<span class="tag ${e.operacao === "compra" ? "compra" : "venda"}">${e.operacao === "compra" ? "Compra" : "Venda"}</span>`
+      const celEntrada = e.preco_executado_ninja != null
+        ? `${horaSomente(e.criado_em)}<span class="sub">${formatarPreco(e.preco_executado_ninja)}</span>`
+        : "(-)";
+
+      const celSaida = e.preco_saida != null
+        ? `${horaSomente(e.resolvido_em)}<span class="sub">${formatarPreco(e.preco_saida)}</span>`
         : "(-)";
 
       let celResultado = `<span class="tag pendente">Em andamento</span>`;
       if (e.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
       else if (e.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
 
-      const celNivel = `
-        Python: ${e.regiao_3_trava != null ? formatarPreco(e.regiao_3_trava) : "(-)"}
-        <span class="sub">Ninja: ${e.preco_executado_ninja != null ? formatarPreco(e.preco_executado_ninja) : "(-)"}</span>`;
-
       return `
         <tr>
           <td class="trava-${corOperacao}">${celTrava}</td>
-          <td>${celOperacao}</td>
+          <td>${celEntrada}</td>
+          <td>${celSaida}</td>
           <td>${celResultado}</td>
-          <td>${celNivel}</td>
         </tr>`;
     })
     .join("");
@@ -482,7 +482,7 @@ async function atualizarPrivado() {
   try {
     renderTabelaExecucoesReais(await buscarExecucoesReais());
   } catch (erro) {
-    console.error("Erro ao carregar execuções reais:", erro.message);
+    console.error("Erro ao carregar operações:", erro.message);
   }
 
   try {
