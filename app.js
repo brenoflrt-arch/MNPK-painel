@@ -99,6 +99,28 @@ async function buscarExecucoesReais() {
   return data;
 }
 
+async function buscarNegociacoesNQ() {
+  const { data, error } = await supabaseCliente
+    .from("operacoes_ficticias")
+    .select("id, criado_em, regiao_preco, operacao, alvo, stop, resultado")
+    .order("criado_em", { ascending: false })
+    .limit(300);
+
+  if (error) throw error;
+  return data;
+}
+
+async function buscarNegociacoesMNQ() {
+  const { data, error } = await supabaseCliente
+    .from("operacoes_teste_mnq")
+    .select("id, criado_em, nivel_preco_trava, operacao, estado, preco_executado, resultado")
+    .order("criado_em", { ascending: false })
+    .limit(300);
+
+  if (error) throw error;
+  return data;
+}
+
 function calcularEstatisticas(operacoes) {
   const resolvidas = operacoes.filter((o) => o.resultado);
   const pendentes = operacoes.length - resolvidas.length;
@@ -353,6 +375,80 @@ function renderTabelaExecucoesReais(execucoes) {
     .join("");
 }
 
+function renderTabelaNegociacoesNQ(operacoes) {
+  const corpo = document.getElementById("tabela-negociacoes-nq");
+
+  if (!operacoes || operacoes.length === 0) {
+    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    return;
+  }
+
+  corpo.innerHTML = operacoes
+    .map((o) => {
+      const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
+      const celEntrada = formatarPreco(o.regiao_preco);
+
+      let celSaida = "(-)";
+      let celResultado = `<span class="tag pendente">Em andamento</span>`;
+      if (o.resultado === RESULTADO_LUCRO) {
+        celSaida = formatarPreco(o.alvo);
+        celResultado = `<span class="tag lucro">Lucro</span>`;
+      } else if (o.resultado === RESULTADO_PREJUIZO) {
+        celSaida = formatarPreco(o.stop);
+        celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
+      }
+
+      return `
+        <tr>
+          <td>${celOperacao}</td>
+          <td>${celEntrada}</td>
+          <td>${celSaida}</td>
+          <td>${celResultado}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
+function renderTabelaNegociacoesMNQ(ofertas) {
+  const corpo = document.getElementById("tabela-negociacoes-mnq");
+
+  if (!ofertas || ofertas.length === 0) {
+    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    return;
+  }
+
+  const ESTADOS_TEXTO = {
+    aguardando_armar: "Aguardando",
+    armada: "Armada",
+    preenchida: "Preenchida",
+    cancelada_ruptura: "Cancelada (ruptura)",
+    cancelada_trava_oposta: "Cancelada (trava oposta)",
+    expirada: "Expirada",
+  };
+
+  corpo.innerHTML = ofertas
+    .map((o) => {
+      const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
+      const celEntrada = o.preco_executado != null ? formatarPreco(o.preco_executado) : formatarPreco(o.nivel_preco_trava);
+
+      // Saída ainda não é capturada pelo executor de teste (gerenciada pelo template ATM).
+      const celSaida = "(-)";
+
+      let celResultado = `<span class="tag pendente">${ESTADOS_TEXTO[o.estado] || o.estado}</span>`;
+      if (o.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
+      else if (o.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
+
+      return `
+        <tr>
+          <td>${celOperacao}</td>
+          <td>${celEntrada}</td>
+          <td>${celSaida}</td>
+          <td>${celResultado}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
 async function atualizarPublico() {
   try {
     const operacoes = await buscarDadosPublicos();
@@ -387,6 +483,18 @@ async function atualizarPrivado() {
     renderTabelaExecucoesReais(await buscarExecucoesReais());
   } catch (erro) {
     console.error("Erro ao carregar execuções reais:", erro.message);
+  }
+
+  try {
+    renderTabelaNegociacoesNQ(await buscarNegociacoesNQ());
+  } catch (erro) {
+    console.error("Erro ao carregar negociações NQ:", erro.message);
+  }
+
+  try {
+    renderTabelaNegociacoesMNQ(await buscarNegociacoesMNQ());
+  } catch (erro) {
+    console.error("Erro ao carregar negociações MNQ:", erro.message);
   }
 }
 
