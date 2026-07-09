@@ -100,9 +100,10 @@ async function buscarExecucoesReais() {
 }
 
 async function buscarNegociacoesNQ() {
+  // Só operações que viraram ordem real no Ninja (operacoes_reais), não o fictício/simulado.
   const { data, error } = await supabaseCliente
-    .from("operacoes_ficticias")
-    .select("id, criado_em, regiao_preco, operacao, alvo, stop, resultado")
+    .from("operacoes_reais")
+    .select("id, criado_em, regiao_3_trava, operacao, preco_executado_ninja, resultado")
     .order("criado_em", { ascending: false })
     .limit(300);
 
@@ -111,9 +112,11 @@ async function buscarNegociacoesNQ() {
 }
 
 async function buscarNegociacoesMNQ() {
+  // Só ofertas que realmente preencheram no Ninja (não as armadas/canceladas sem execução).
   const { data, error } = await supabaseCliente
     .from("operacoes_teste_mnq")
     .select("id, criado_em, nivel_preco_trava, operacao, estado, preco_executado, resultado")
+    .not("preco_executado", "is", null)
     .order("criado_em", { ascending: false })
     .limit(300);
 
@@ -386,17 +389,14 @@ function renderTabelaNegociacoesNQ(operacoes) {
   corpo.innerHTML = operacoes
     .map((o) => {
       const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
-      const celEntrada = formatarPreco(o.regiao_preco);
+      const celEntrada = o.preco_executado_ninja != null ? formatarPreco(o.preco_executado_ninja) : "(-)";
 
-      let celSaida = "(-)";
+      // Saída real ainda não é reportada pelo Executor (bug em investigação).
+      const celSaida = "(-)";
+
       let celResultado = `<span class="tag pendente">Em andamento</span>`;
-      if (o.resultado === RESULTADO_LUCRO) {
-        celSaida = formatarPreco(o.alvo);
-        celResultado = `<span class="tag lucro">Lucro</span>`;
-      } else if (o.resultado === RESULTADO_PREJUIZO) {
-        celSaida = formatarPreco(o.stop);
-        celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
-      }
+      if (o.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
+      else if (o.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
 
       return `
         <tr>
