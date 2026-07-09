@@ -115,7 +115,7 @@ async function buscarNegociacoesMNQ() {
   // Só ofertas que realmente preencheram no Ninja (não as armadas/canceladas sem execução).
   const { data, error } = await supabaseCliente
     .from("operacoes_teste_mnq")
-    .select("id, criado_em, nivel_preco_trava, operacao, estado, preco_executado, preco_saida, resultado")
+    .select("id, criado_em, armado_em, nivel_preco_trava, operacao, estado, preco_executado, preco_saida, resultado")
     .not("preco_executado", "is", null)
     .order("criado_em", { ascending: false })
     .limit(300);
@@ -382,12 +382,13 @@ function renderTabelaNegociacoesNQ(operacoes) {
   const corpo = document.getElementById("tabela-negociacoes-nq");
 
   if (!operacoes || operacoes.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
     return;
   }
 
   corpo.innerHTML = operacoes
     .map((o) => {
+      const celHorario = horaSomente(o.criado_em);
       const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
       const celEntrada = o.preco_executado_ninja != null ? formatarPreco(o.preco_executado_ninja) : "(-)";
       const celSaida = o.preco_saida != null ? formatarPreco(o.preco_saida) : "(-)";
@@ -398,6 +399,7 @@ function renderTabelaNegociacoesNQ(operacoes) {
 
       return `
         <tr>
+          <td>${celHorario}</td>
           <td>${celOperacao}</td>
           <td>${celEntrada}</td>
           <td>${celSaida}</td>
@@ -411,7 +413,7 @@ function renderTabelaNegociacoesMNQ(ofertas) {
   const corpo = document.getElementById("tabela-negociacoes-mnq");
 
   if (!ofertas || ofertas.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
     return;
   }
 
@@ -426,6 +428,7 @@ function renderTabelaNegociacoesMNQ(ofertas) {
 
   corpo.innerHTML = ofertas
     .map((o) => {
+      const celHorario = horaSomente(o.armado_em || o.criado_em);
       const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
       const celEntrada = o.preco_executado != null ? formatarPreco(o.preco_executado) : formatarPreco(o.nivel_preco_trava);
       const celSaida = o.preco_saida != null ? formatarPreco(o.preco_saida) : "(-)";
@@ -436,6 +439,7 @@ function renderTabelaNegociacoesMNQ(ofertas) {
 
       return `
         <tr>
+          <td>${celHorario}</td>
           <td>${celOperacao}</td>
           <td>${celEntrada}</td>
           <td>${celSaida}</td>
