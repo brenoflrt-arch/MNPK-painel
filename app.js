@@ -91,32 +91,7 @@ async function buscarTentativasUnificadas() {
 async function buscarExecucoesReais() {
   const { data, error } = await supabaseCliente
     .from("operacoes_reais")
-    .select("*")
-    .order("criado_em", { ascending: false })
-    .limit(300);
-
-  if (error) throw error;
-  return data;
-}
-
-async function buscarNegociacoesNQ() {
-  // Só operações que viraram ordem real no Ninja (operacoes_reais), não o fictício/simulado.
-  const { data, error } = await supabaseCliente
-    .from("operacoes_reais")
-    .select("id, criado_em, regiao_3_trava, operacao, preco_executado_ninja, preco_saida, resultado")
-    .order("criado_em", { ascending: false })
-    .limit(300);
-
-  if (error) throw error;
-  return data;
-}
-
-async function buscarNegociacoesMNQ() {
-  // Só ofertas que realmente preencheram no Ninja (não as armadas/canceladas sem execução).
-  const { data, error } = await supabaseCliente
-    .from("operacoes_teste_mnq")
-    .select("id, criado_em, armado_em, nivel_preco_trava, operacao, estado, preco_executado, preco_saida, resultado")
-    .not("preco_executado", "is", null)
+    .select("*, tentativas_2(criado_em, regiao_preco)")
     .order("criado_em", { ascending: false })
     .limit(300);
 
@@ -351,7 +326,12 @@ function renderTabelaExecucoesReais(execucoes) {
     .map((e) => {
       const corOperacao = e.operacao === "compra" ? "good" : "critical";
 
-      const celTrava = e.regiao_3_trava != null
+      // Preço/horário reais da 2ª trava vêm de tentativas_2 (mesma fonte da tabela
+      // Registros Operacionais); só cai para regiao_3_trava/criado_em em registros
+      // antigos que não têm o vínculo tentativa_2_id.
+      const celTrava = e.tentativas_2
+        ? `${horaSomente(e.tentativas_2.criado_em)}<span class="sub">${formatarPreco(e.tentativas_2.regiao_preco)}</span>`
+        : e.regiao_3_trava != null
         ? `${horaSomente(e.criado_em)}<span class="sub">${formatarPreco(e.regiao_3_trava)}</span>`
         : "(-)";
 
@@ -370,77 +350,6 @@ function renderTabelaExecucoesReais(execucoes) {
       return `
         <tr>
           <td class="trava-${corOperacao}">${celTrava}</td>
-          <td>${celEntrada}</td>
-          <td>${celSaida}</td>
-          <td>${celResultado}</td>
-        </tr>`;
-    })
-    .join("");
-}
-
-function renderTabelaNegociacoesNQ(operacoes) {
-  const corpo = document.getElementById("tabela-negociacoes-nq");
-
-  if (!operacoes || operacoes.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
-    return;
-  }
-
-  corpo.innerHTML = operacoes
-    .map((o) => {
-      const celHorario = horaSomente(o.criado_em);
-      const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
-      const celEntrada = o.preco_executado_ninja != null ? formatarPreco(o.preco_executado_ninja) : "(-)";
-      const celSaida = o.preco_saida != null ? formatarPreco(o.preco_saida) : "(-)";
-
-      let celResultado = `<span class="tag pendente">Em andamento</span>`;
-      if (o.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
-      else if (o.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
-
-      return `
-        <tr>
-          <td>${celHorario}</td>
-          <td>${celOperacao}</td>
-          <td>${celEntrada}</td>
-          <td>${celSaida}</td>
-          <td>${celResultado}</td>
-        </tr>`;
-    })
-    .join("");
-}
-
-function renderTabelaNegociacoesMNQ(ofertas) {
-  const corpo = document.getElementById("tabela-negociacoes-mnq");
-
-  if (!ofertas || ofertas.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
-    return;
-  }
-
-  const ESTADOS_TEXTO = {
-    aguardando_armar: "Aguardando",
-    armada: "Armada",
-    preenchida: "Preenchida",
-    cancelada_ruptura: "Cancelada (ruptura)",
-    cancelada_trava_oposta: "Cancelada (trava oposta)",
-    expirada: "Expirada",
-  };
-
-  corpo.innerHTML = ofertas
-    .map((o) => {
-      const celHorario = horaSomente(o.armado_em || o.criado_em);
-      const celOperacao = `<span class="tag ${o.operacao === "compra" ? "compra" : "venda"}">${o.operacao === "compra" ? "Compra" : "Venda"}</span>`;
-      const celEntrada = o.preco_executado != null ? formatarPreco(o.preco_executado) : formatarPreco(o.nivel_preco_trava);
-      const celSaida = o.preco_saida != null ? formatarPreco(o.preco_saida) : "(-)";
-
-      let celResultado = `<span class="tag pendente">${ESTADOS_TEXTO[o.estado] || o.estado}</span>`;
-      if (o.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
-      else if (o.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
-
-      return `
-        <tr>
-          <td>${celHorario}</td>
-          <td>${celOperacao}</td>
           <td>${celEntrada}</td>
           <td>${celSaida}</td>
           <td>${celResultado}</td>
@@ -483,18 +392,6 @@ async function atualizarPrivado() {
     renderTabelaExecucoesReais(await buscarExecucoesReais());
   } catch (erro) {
     console.error("Erro ao carregar operações:", erro.message);
-  }
-
-  try {
-    renderTabelaNegociacoesNQ(await buscarNegociacoesNQ());
-  } catch (erro) {
-    console.error("Erro ao carregar negociações NQ:", erro.message);
-  }
-
-  try {
-    renderTabelaNegociacoesMNQ(await buscarNegociacoesMNQ());
-  } catch (erro) {
-    console.error("Erro ao carregar negociações MNQ:", erro.message);
   }
 }
 
