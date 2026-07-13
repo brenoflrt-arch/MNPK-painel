@@ -3,6 +3,24 @@ const supabaseCliente = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE
 const RESULTADO_LUCRO = "LUCRO";
 const RESULTADO_PREJUIZO = "PREJUÍZO";
 
+let filtroPeriodoAtual = "tudo";
+
+function dataInicioFiltro() {
+  const agora = new Date();
+  if (filtroPeriodoAtual === "dia") {
+    const inicio = new Date(agora);
+    inicio.setHours(0, 0, 0, 0);
+    return inicio;
+  }
+  if (filtroPeriodoAtual === "semana") {
+    return new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
+  }
+  if (filtroPeriodoAtual === "mes") {
+    return new Date(agora.getTime() - 30 * 24 * 60 * 60 * 1000);
+  }
+  return null; // "tudo"
+}
+
 function formatarHorario(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -50,12 +68,16 @@ function formatarUSD(pontos) {
 }
 
 async function buscarDadosPublicos() {
-  const { data, error } = await supabaseCliente
+  let consulta = supabaseCliente
     .from("operacoes_publicas")
     .select("*")
     .order("criado_em", { ascending: false })
     .limit(300);
 
+  const inicio = dataInicioFiltro();
+  if (inicio) consulta = consulta.gte("criado_em", inicio.toISOString());
+
+  const { data, error } = await consulta;
   if (error) throw error;
   return data;
 }
@@ -76,7 +98,7 @@ function renderCotacao(cotacao) {
 }
 
 async function buscarTentativasUnificadas() {
-  const { data, error } = await supabaseCliente
+  let consulta = supabaseCliente
     .from("tentativas_2")
     .select(
       "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_ficticias(id, criado_em, regiao_preco, operacao, alvo, stop, resultado)"
@@ -84,17 +106,25 @@ async function buscarTentativasUnificadas() {
     .order("criado_em", { ascending: false })
     .limit(300);
 
+  const inicio = dataInicioFiltro();
+  if (inicio) consulta = consulta.gte("criado_em", inicio.toISOString());
+
+  const { data, error } = await consulta;
   if (error) throw error;
   return data;
 }
 
 async function buscarExecucoesReais(tabela = "operacoes_reais") {
-  const { data, error } = await supabaseCliente
+  let consulta = supabaseCliente
     .from(tabela)
     .select("*, tentativas_2(criado_em, regiao_preco)")
     .order("criado_em", { ascending: false })
     .limit(300);
 
+  const inicio = dataInicioFiltro();
+  if (inicio) consulta = consulta.gte("criado_em", inicio.toISOString());
+
+  const { data, error } = await consulta;
   if (error) throw error;
   return data;
 }
@@ -463,6 +493,18 @@ document.getElementById("login-form").addEventListener("submit", async (evento) 
 
 document.getElementById("btn-sair").addEventListener("click", async () => {
   await supabaseCliente.auth.signOut();
+});
+
+document.getElementById("filtro-periodo").addEventListener("click", (evento) => {
+  const botao = evento.target.closest("button[data-periodo]");
+  if (!botao) return;
+
+  filtroPeriodoAtual = botao.dataset.periodo;
+  document
+    .querySelectorAll("#filtro-periodo button")
+    .forEach((b) => b.classList.toggle("ativo", b === botao));
+
+  atualizarTudo();
 });
 
 atualizarTudo();

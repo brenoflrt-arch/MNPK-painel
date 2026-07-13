@@ -406,6 +406,33 @@ main {
   color: var(--text-primary);
 }
 
+.filtro-periodo {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.filtro-periodo button {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.filtro-periodo button:hover {
+  color: var(--text-primary);
+}
+
+.filtro-periodo button.ativo {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
 .tabela-card {
   background: var(--surface-1);
   border: 1px solid var(--border);
