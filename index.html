@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Painel NQ/MNQ — Times &amp; Sales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,6 +16,22 @@
 </header>
 
 <main>
+
+  <section class="tabela-card tabela-card-full ts-card">
+    <h2>Times &amp; Sales</h2>
+    <div class="tabela-scroll ts-scroll">
+      <table class="tabela-compacta ts-tabela">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            <th>Preço</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-times-sales"></tbody>
+      </table>
+    </div>
+  </section>
 
   <section class="cards-grid" id="cards-grid" aria-label="Resumo de performance">
     <!-- preenchido via JS -->

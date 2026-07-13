@@ -67,6 +67,40 @@ function formatarUSD(pontos) {
   return formatarUSDValor(pontos * USD_POR_PONTO);
 }
 
+const LIMITE_TIMES_SALES = 200;
+
+async function buscarTimesSales() {
+  const { data, error } = await supabaseCliente
+    .from("negociacoes_tempo_real")
+    .select("horario, preco, quantidade, direcao")
+    .order("criado_em", { ascending: false })
+    .limit(LIMITE_TIMES_SALES);
+
+  if (error) throw error;
+  return data;
+}
+
+function renderTimesSales(negociacoes) {
+  const corpo = document.getElementById("tabela-times-sales");
+
+  if (!negociacoes || negociacoes.length === 0) {
+    corpo.innerHTML = `<tr><td colspan="3" class="vazio">Nenhuma negociação ainda</td></tr>`;
+    return;
+  }
+
+  corpo.innerHTML = negociacoes
+    .map((n) => {
+      const classe = n.direcao === "compra" ? "ts-compra" : "ts-venda";
+      return `
+        <tr class="${classe}">
+          <td>${(n.horario || "").slice(0, 8)}</td>
+          <td>${formatarPreco(n.preco)}</td>
+          <td>${n.quantidade}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
 async function buscarDadosPublicos() {
   let consulta = supabaseCliente
     .from("operacoes_publicas")
@@ -406,6 +440,12 @@ async function atualizarPublico() {
       renderCotacao(await buscarCotacaoAtual());
     } catch (erroCotacao) {
       console.error("Erro ao carregar cotação:", erroCotacao.message);
+    }
+
+    try {
+      renderTimesSales(await buscarTimesSales());
+    } catch (erroTimesSales) {
+      console.error("Erro ao carregar Times & Sales:", erroTimesSales.message);
     }
 
     document.getElementById("ultima-atualizacao").textContent =
