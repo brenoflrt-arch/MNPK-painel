@@ -148,21 +148,6 @@ async function buscarTentativasUnificadas() {
   return data;
 }
 
-async function buscarExecucoesReais(tabela = "operacoes_reais") {
-  let consulta = supabaseCliente
-    .from(tabela)
-    .select("*, tentativas_2(criado_em, regiao_preco)")
-    .order("criado_em", { ascending: false })
-    .limit(300);
-
-  const inicio = dataInicioFiltro();
-  if (inicio) consulta = consulta.gte("criado_em", inicio.toISOString());
-
-  const { data, error } = await consulta;
-  if (error) throw error;
-  return data;
-}
-
 function calcularEstatisticas(
   operacoes,
   pontosGanhoDe = (o) => Math.abs(o.alvo - o.regiao_preco),
@@ -383,50 +368,6 @@ function renderTabelaUnificada(tentativas) {
     .join("");
 }
 
-function renderTabelaExecucoesReais(execucoes, corpoId = "tabela-execucoes-reais") {
-  const corpo = document.getElementById(corpoId);
-
-  if (!execucoes || execucoes.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
-    return;
-  }
-
-  corpo.innerHTML = execucoes
-    .map((e) => {
-      const corOperacao = e.operacao === "compra" ? "good" : "critical";
-
-      // Preço/horário reais da 2ª trava vêm de tentativas_2 (mesma fonte da tabela
-      // Registros Operacionais); só cai para regiao_3_trava/criado_em em registros
-      // antigos que não têm o vínculo tentativa_2_id.
-      const celTrava = e.tentativas_2
-        ? `${horaSomente(e.tentativas_2.criado_em)}<span class="sub">${formatarPreco(e.tentativas_2.regiao_preco)}</span>`
-        : e.regiao_3_trava != null
-        ? `${horaSomente(e.criado_em)}<span class="sub">${formatarPreco(e.regiao_3_trava)}</span>`
-        : "(-)";
-
-      const celEntrada = e.preco_executado_ninja != null
-        ? `${horaSomente(e.criado_em)}<span class="sub">${formatarPreco(e.preco_executado_ninja)}</span>`
-        : "(-)";
-
-      const celSaida = e.preco_saida != null
-        ? `${horaSomente(e.resolvido_em)}<span class="sub">${formatarPreco(e.preco_saida)}</span>`
-        : "(-)";
-
-      let celResultado = `<span class="tag pendente">Em andamento</span>`;
-      if (e.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
-      else if (e.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
-
-      return `
-        <tr>
-          <td class="trava-${corOperacao}">${celTrava}</td>
-          <td>${celEntrada}</td>
-          <td>${celSaida}</td>
-          <td>${celResultado}</td>
-        </tr>`;
-    })
-    .join("");
-}
-
 async function atualizarPublico() {
   try {
     const operacoes = await buscarDadosPublicos();
@@ -461,40 +402,6 @@ async function atualizarPrivado() {
     renderTabelaUnificada(await buscarTentativasUnificadas());
   } catch (erro) {
     console.error("Erro ao carregar tentativas unificadas:", erro.message);
-  }
-
-  const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
-
-  try {
-    const execucoes = await buscarExecucoesReais("operacoes_reais");
-    renderTabelaExecucoesReais(execucoes, "tabela-execucoes-reais");
-
-    const statsExecucao = calcularEstatisticas(execucoes, pontosDe, pontosDe);
-    renderCards(statsExecucao, "cards-grid-execucao");
-    renderPizza(statsExecucao, "pizza-execucao", "pizza-legenda-execucao");
-    renderBarras(
-      execucoes,
-      "barras-execucao",
-      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
-    );
-  } catch (erro) {
-    console.error("Erro ao carregar operações:", erro.message);
-  }
-
-  try {
-    const execucoesNoturna = await buscarExecucoesReais("operacoes_reais_noturna");
-    renderTabelaExecucoesReais(execucoesNoturna, "tabela-execucoes-reais-noturna");
-
-    const statsExecucaoNoturna = calcularEstatisticas(execucoesNoturna, pontosDe, pontosDe);
-    renderCards(statsExecucaoNoturna, "cards-grid-execucao-noturna");
-    renderPizza(statsExecucaoNoturna, "pizza-execucao-noturna", "pizza-legenda-execucao-noturna");
-    renderBarras(
-      execucoesNoturna,
-      "barras-execucao-noturna",
-      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
-    );
-  } catch (erro) {
-    console.error("Erro ao carregar operações noturnas:", erro.message);
   }
 }
 
