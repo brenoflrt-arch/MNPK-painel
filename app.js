@@ -103,7 +103,7 @@ function renderTimesSales(negociacoes) {
 
 async function buscarDadosPublicos() {
   let consulta = supabaseCliente
-    .from("operacoes_publicas")
+    .from("operacoes_reais_publica")
     .select("*")
     .order("criado_em", { ascending: false })
     .limit(300);
@@ -371,11 +371,16 @@ function renderTabelaUnificada(tentativas) {
 async function atualizarPublico() {
   try {
     const operacoes = await buscarDadosPublicos();
-    const stats = calcularEstatisticas(operacoes);
+    const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
+    const stats = calcularEstatisticas(operacoes, pontosDe, pontosDe);
 
     renderCards(stats);
     renderPizza(stats);
-    renderBarras(operacoes);
+    renderBarras(
+      operacoes,
+      "barras",
+      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
+    );
 
     try {
       renderCotacao(await buscarCotacaoAtual());
