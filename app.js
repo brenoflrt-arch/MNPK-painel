@@ -314,53 +314,61 @@ function calcularPrimeiraTrava(negociacoes) {
 }
 
 function renderTabelaUnificada(tentativas) {
-  const corpo = document.getElementById("tabela-unificada");
+  const corpoCompletas = document.getElementById("tabela-unificada");
+  const corpoPendentes = document.getElementById("tabela-pendentes");
 
   if (!tentativas || tentativas.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
+    corpoCompletas.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    corpoPendentes.innerHTML = `<tr><td colspan="2" class="vazio">Nenhum registro ainda</td></tr>`;
     return;
   }
 
-  corpo.innerHTML = tentativas
-    .map((t) => {
-      const primeira = calcularPrimeiraTrava(t.negociacoes_primeira_tentativa);
-      const op = t.operacoes_reais && t.operacoes_reais[0];
-      const corProvavel = t.operacao_provavel === "compra" ? "good" : "critical";
+  const completas = [];
+  const pendentes = [];
 
-      const celPrimeira = primeira
-        ? `${primeira.horario}<span class="sub">${formatarPreco(primeira.preco)}</span>`
-        : "(-)";
-      const celSegunda = `${horaSomente(t.criado_em)}<span class="sub">${formatarPreco(t.regiao_preco)}</span>`;
-      const celTerceira = op
-        ? `${horaSomente(op.criado_em)}<span class="sub">${formatarPreco(op.regiao_3_trava)}</span>`
-        : "(-)";
+  tentativas.forEach((t) => {
+    const primeira = calcularPrimeiraTrava(t.negociacoes_primeira_tentativa);
+    const op = t.operacoes_reais && t.operacoes_reais[0];
+    const corProvavel = t.operacao_provavel === "compra" ? "good" : "critical";
 
-      let celOperacao = "(-)";
-      let corOperacao = corProvavel;
-      if (op) {
-        corOperacao = op.operacao === "compra" ? "good" : "critical";
-        const simbolo = op.operacao === "compra" ? "C" : "V";
-        const preco = op.preco_executado_ninja ?? op.regiao_3_trava;
-        celOperacao = `${horaSomente(op.criado_em)}<span class="sub">${simbolo} ${formatarPreco(preco)}</span>`;
-      }
+    const celPrimeira = primeira
+      ? `${primeira.horario}<span class="sub">${formatarPreco(primeira.preco)}</span>`
+      : "(-)";
+    const celSegunda = `${horaSomente(t.criado_em)}<span class="sub">${formatarPreco(t.regiao_preco)}</span>`;
 
-      let celResultado = "(-)";
-      if (op) {
-        if (op.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
-        else if (op.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
-        else celResultado = `<span class="tag pendente">Em andamento</span>`;
-      }
-
-      return `
+    if (!op) {
+      pendentes.push(`
         <tr>
           <td class="trava-${corProvavel}">${celPrimeira}</td>
           <td class="trava-${corProvavel}">${celSegunda}</td>
-          <td class="trava-${corProvavel}">${celTerceira}</td>
-          <td class="trava-${corOperacao}">${celOperacao}</td>
-          <td>${celResultado}</td>
-        </tr>`;
-    })
-    .join("");
+        </tr>`);
+      return;
+    }
+
+    const corOperacao = op.operacao === "compra" ? "good" : "critical";
+    const simbolo = op.operacao === "compra" ? "C" : "V";
+    const preco = op.preco_executado_ninja ?? op.regiao_3_trava;
+    const celTerceira = `${horaSomente(op.criado_em)}<span class="sub">${simbolo} ${formatarPreco(preco)}</span>`;
+
+    let celResultado = `<span class="tag pendente">Em andamento</span>`;
+    if (op.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
+    else if (op.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
+
+    completas.push(`
+      <tr>
+        <td class="trava-${corProvavel}">${celPrimeira}</td>
+        <td class="trava-${corProvavel}">${celSegunda}</td>
+        <td class="trava-${corOperacao}">${celTerceira}</td>
+        <td>${celResultado}</td>
+      </tr>`);
+  });
+
+  corpoCompletas.innerHTML = completas.length
+    ? completas.join("")
+    : `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+  corpoPendentes.innerHTML = pendentes.length
+    ? pendentes.join("")
+    : `<tr><td colspan="2" class="vazio">Nenhum registro ainda</td></tr>`;
 }
 
 async function atualizarPublico() {
