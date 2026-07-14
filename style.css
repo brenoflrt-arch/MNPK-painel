@@ -458,12 +458,12 @@ main {
 }
 
 .ts-tabela tbody tr.ts-compra td {
-  background: var(--good);
+  background: #1a6b1a;
   color: #ffffff;
 }
 
 .ts-tabela tbody tr.ts-venda td {
-  background: var(--critical);
+  background: #b3221f;
   color: #ffffff;
 }
 

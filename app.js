@@ -135,7 +135,7 @@ async function buscarTentativasUnificadas() {
   let consulta = supabaseCliente
     .from("tentativas_2")
     .select(
-      "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_ficticias(id, criado_em, regiao_preco, operacao, alvo, stop, resultado)"
+      "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_reais(id, criado_em, regiao_3_trava, operacao, preco_executado_ninja, preco_saida, resultado)"
     )
     .order("criado_em", { ascending: false })
     .limit(300);
@@ -324,7 +324,7 @@ function renderTabelaUnificada(tentativas) {
   corpo.innerHTML = tentativas
     .map((t) => {
       const primeira = calcularPrimeiraTrava(t.negociacoes_primeira_tentativa);
-      const op = t.operacoes_ficticias && t.operacoes_ficticias[0];
+      const op = t.operacoes_reais && t.operacoes_reais[0];
       const corProvavel = t.operacao_provavel === "compra" ? "good" : "critical";
 
       const celPrimeira = primeira
@@ -332,17 +332,17 @@ function renderTabelaUnificada(tentativas) {
         : "(-)";
       const celSegunda = `${horaSomente(t.criado_em)}<span class="sub">${formatarPreco(t.regiao_preco)}</span>`;
       const celTerceira = op
-        ? `${horaSomente(op.criado_em)}<span class="sub">${formatarPreco(op.regiao_preco)}</span>`
+        ? `${horaSomente(op.criado_em)}<span class="sub">${formatarPreco(op.regiao_3_trava)}</span>`
         : "(-)";
 
       let celOperacao = "(-)";
       if (op) {
         const simbolo = op.operacao === "compra" ? "C" : "V";
-        celOperacao = `<span class="tag ${op.operacao === "compra" ? "compra" : "venda"}">${simbolo} ${formatarPreco(op.regiao_preco)}</span>`;
+        celOperacao = `<span class="tag ${op.operacao === "compra" ? "compra" : "venda"}">${simbolo} ${formatarPreco(op.preco_executado_ninja ?? op.regiao_3_trava)}</span>`;
       }
 
-      const celAlvo = op ? formatarPreco(op.alvo) : "(-)";
-      const celStop = op ? formatarPreco(op.stop) : "(-)";
+      const celAlvo = op && op.preco_executado_ninja != null ? formatarPreco(op.preco_executado_ninja) : "(-)";
+      const celStop = op && op.preco_saida != null ? formatarPreco(op.preco_saida) : "(-)";
 
       let celResultado = "(-)";
       if (op) {
