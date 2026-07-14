@@ -193,7 +193,7 @@ function renderCards(stats, gridId = "cards-grid") {
     <div class="card">
       <h3>Todas as operações</h3>
       ${linha("Total de operações", stats.total)}
-      ${linha("Resolvidas", stats.resolvidas)}
+      ${linha("Positivas", stats.lucro.length - stats.prejuizo.length, stats.lucro.length - stats.prejuizo.length >= 0 ? "good" : "critical")}
       ${linha("Em andamento", stats.pendentes)}
       ${linha("Taxa de acerto", stats.taxaAcerto.toFixed(1) + "%")}
       ${linha("Pontuação total", formatarPontos(stats.pontosTotais), stats.pontosTotais >= 0 ? "good" : "critical")}
