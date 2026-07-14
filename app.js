@@ -317,7 +317,7 @@ function renderTabelaUnificada(tentativas) {
   const corpo = document.getElementById("tabela-unificada");
 
   if (!tentativas || tentativas.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="8" class="vazio">Nenhum registro ainda</td></tr>`;
+    corpo.innerHTML = `<tr><td colspan="5" class="vazio">Nenhum registro ainda</td></tr>`;
     return;
   }
 
@@ -336,13 +336,13 @@ function renderTabelaUnificada(tentativas) {
         : "(-)";
 
       let celOperacao = "(-)";
+      let corOperacao = corProvavel;
       if (op) {
+        corOperacao = op.operacao === "compra" ? "good" : "critical";
         const simbolo = op.operacao === "compra" ? "C" : "V";
-        celOperacao = `<span class="tag ${op.operacao === "compra" ? "compra" : "venda"}">${simbolo} ${formatarPreco(op.preco_executado_ninja ?? op.regiao_3_trava)}</span>`;
+        const preco = op.preco_executado_ninja ?? op.regiao_3_trava;
+        celOperacao = `${horaSomente(op.criado_em)}<span class="sub">${simbolo} ${formatarPreco(preco)}</span>`;
       }
-
-      const celAlvo = op && op.preco_executado_ninja != null ? formatarPreco(op.preco_executado_ninja) : "(-)";
-      const celStop = op && op.preco_saida != null ? formatarPreco(op.preco_saida) : "(-)";
 
       let celResultado = "(-)";
       if (op) {
@@ -351,18 +351,13 @@ function renderTabelaUnificada(tentativas) {
         else celResultado = `<span class="tag pendente">Em andamento</span>`;
       }
 
-      const celNotificacao = `<span class="tag ${t.notificado ? "sim" : "nao"}">${t.notificado ? "Sim" : "Não"}</span>`;
-
       return `
         <tr>
           <td class="trava-${corProvavel}">${celPrimeira}</td>
           <td class="trava-${corProvavel}">${celSegunda}</td>
           <td class="trava-${corProvavel}">${celTerceira}</td>
-          <td>${celOperacao}</td>
-          <td>${celAlvo}</td>
-          <td>${celStop}</td>
+          <td class="trava-${corOperacao}">${celOperacao}</td>
           <td>${celResultado}</td>
-          <td>${celNotificacao}</td>
         </tr>`;
     })
     .join("");
