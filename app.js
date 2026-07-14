@@ -49,7 +49,7 @@ function formatarPreco(valor) {
   return Number(valor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const CONTRATOS_POR_OPERACAO = 5;
+const CONTRATOS_POR_OPERACAO = 1;
 const VALOR_POR_PONTO_USD = 2;
 const USD_POR_PONTO = CONTRATOS_POR_OPERACAO * VALOR_POR_PONTO_USD;
 
