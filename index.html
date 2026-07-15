@@ -15,6 +15,10 @@
 
   <section class="tabela-card tabela-card-full ts-card">
     <h2>Times &amp; Sales</h2>
+    <div class="cotacao-bloco">
+      <p class="cotacao" id="cotacao-atual"></p>
+      <p class="atualizado" id="ultima-atualizacao">Carregando dados…</p>
+    </div>
     <div class="tabela-scroll ts-scroll">
       <table class="tabela-compacta ts-tabela">
         <thead>
@@ -55,10 +59,6 @@
 
   <section class="tabelas-grid" id="tabelas-grid" hidden>
     <div class="tabelas-topo">
-      <div class="cotacao-bloco">
-        <p class="cotacao" id="cotacao-atual"></p>
-        <p class="atualizado" id="ultima-atualizacao">Carregando dados…</p>
-      </div>
       <div class="filtro-periodo" id="filtro-periodo" role="group" aria-label="Filtro de período">
         <button data-periodo="dia">Dia</button>
         <button data-periodo="semana">Semana</button>

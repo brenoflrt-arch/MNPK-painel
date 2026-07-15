@@ -383,21 +383,6 @@ main {
   min-height: 32px;
 }
 
-.tabelas-topo .cotacao-bloco {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-}
-
-.tabelas-topo .cotacao {
-  margin: 0;
-}
-
-.tabelas-topo .atualizado {
-  margin: 2px 0 0;
-}
-
 #btn-sair {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -448,6 +433,15 @@ main {
 
 .ts-card {
   margin-bottom: 20px;
+}
+
+.ts-card h2 {
+  text-align: center;
+}
+
+.ts-card .cotacao-bloco {
+  text-align: center;
+  margin: 0 0 14px;
 }
 
 .tabela-scroll.ts-scroll {
