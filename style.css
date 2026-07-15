@@ -320,6 +320,10 @@ main {
   .tabelas-grid {
     grid-template-columns: 1fr;
   }
+
+  .ts-scroll {
+    max-height: 75vh;
+  }
 }
 
 .tabela-card-full {
