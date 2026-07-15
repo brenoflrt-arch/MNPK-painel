@@ -425,9 +425,15 @@ async function atualizarTudo() {
 }
 
 function mostrarAreaLogada(logado) {
-  document.getElementById("login-card").hidden = logado;
+  document.getElementById("btn-abrir-login").hidden = logado;
+  if (logado) document.getElementById("login-card").hidden = true;
   document.getElementById("tabelas-grid").hidden = !logado;
 }
+
+document.getElementById("btn-abrir-login").addEventListener("click", () => {
+  const card = document.getElementById("login-card");
+  card.hidden = !card.hidden;
+});
 
 supabaseCliente.auth.getSession().then(({ data: { session } }) => {
   mostrarAreaLogada(!!session);
