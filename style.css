@@ -321,8 +321,10 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .ts-scroll {
-    max-height: 960px;
+  .tabela-scroll.ts-scroll {
+    /* 16 linhas cabiam em 420px (herdado de .tabela-scroll) -> 40 linhas, mesmo
+       espaçamento/fonte, é 420px * (40/16) = 1050px. */
+    max-height: 1050px;
   }
 }
 
@@ -448,7 +450,7 @@ main {
   margin-bottom: 20px;
 }
 
-.ts-scroll {
+.tabela-scroll.ts-scroll {
   max-height: 480px;
 }
 
