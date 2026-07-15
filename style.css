@@ -322,9 +322,8 @@ main {
   }
 
   .tabela-scroll.ts-scroll {
-    /* 16 linhas cabiam em 420px (herdado de .tabela-scroll) -> 40 linhas, mesmo
-       espaçamento/fonte, é 420px * (40/16) = 1050px. */
-    max-height: 1050px;
+    /* Dobrando de novo: 1050px -> 2100px (mesmo espaçamento/fonte, ~80 linhas). */
+    max-height: 2100px;
   }
 }
 
@@ -445,7 +444,7 @@ main {
 }
 
 .tabela-scroll.ts-scroll {
-  max-height: 480px;
+  max-height: 960px;
 }
 
 .ts-tabela {
