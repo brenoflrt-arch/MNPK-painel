@@ -135,7 +135,7 @@ async function buscarTentativasUnificadas() {
   let consulta = supabaseCliente
     .from("tentativas_2")
     .select(
-      "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_reais(id, criado_em, regiao_3_trava, operacao, preco_executado_ninja, preco_saida, resultado)"
+      "id, criado_em, regiao_preco, direcao, operacao_provavel, notificado, negociacoes_primeira_tentativa, operacoes_reais(id, criado_em, regiao_3_trava, operacao, preco_executado_ninja, preco_saida, resultado, pontos_resultado, mep_pontos)"
     )
     .order("criado_em", { ascending: false })
     .limit(300);
@@ -316,7 +316,7 @@ function renderTabelaUnificada(tentativas) {
   const corpoPendentes = document.getElementById("tabela-pendentes");
 
   if (!tentativas || tentativas.length === 0) {
-    corpoCompletas.innerHTML = `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    corpoCompletas.innerHTML = `<tr><td colspan="6" class="vazio">Nenhum registro ainda</td></tr>`;
     corpoPendentes.innerHTML = `<tr><td colspan="2" class="vazio">Nenhum registro ainda</td></tr>`;
     return;
   }
@@ -352,18 +352,25 @@ function renderTabelaUnificada(tentativas) {
     if (op.resultado === RESULTADO_LUCRO) celResultado = `<span class="tag lucro">Lucro</span>`;
     else if (op.resultado === RESULTADO_PREJUIZO) celResultado = `<span class="tag prejuizo">Prejuízo</span>`;
 
+    const celPontos = op.pontos_resultado != null
+      ? `<span class="trava-${op.pontos_resultado >= 0 ? "good" : "critical"}">${op.pontos_resultado > 0 ? "+" : ""}${op.pontos_resultado} pts</span>`
+      : "(-)";
+    const celMep = op.mep_pontos != null ? `${Number(op.mep_pontos).toFixed(2)} pts` : "(-)";
+
     completas.push(`
       <tr>
         <td class="trava-${corProvavel}">${celPrimeira}</td>
         <td class="trava-${corProvavel}">${celSegunda}</td>
         <td class="trava-${corOperacao}">${celTerceira}</td>
         <td>${celResultado}</td>
+        <td>${celPontos}</td>
+        <td>${celMep}</td>
       </tr>`);
   });
 
   corpoCompletas.innerHTML = completas.length
     ? completas.join("")
-    : `<tr><td colspan="4" class="vazio">Nenhum registro ainda</td></tr>`;
+    : `<tr><td colspan="6" class="vazio">Nenhum registro ainda</td></tr>`;
   corpoPendentes.innerHTML = pendentes.length
     ? pendentes.join("")
     : `<tr><td colspan="2" class="vazio">Nenhum registro ainda</td></tr>`;
