@@ -101,21 +101,6 @@ function renderTimesSales(negociacoes) {
     .join("");
 }
 
-async function buscarDadosPublicos() {
-  let consulta = supabaseCliente
-    .from("operacoes_reais_publica")
-    .select("*")
-    .order("criado_em", { ascending: false })
-    .limit(300);
-
-  const inicio = dataInicioFiltro();
-  if (inicio) consulta = consulta.gte("criado_em", inicio.toISOString());
-
-  const { data, error } = await consulta;
-  if (error) throw error;
-  return data;
-}
-
 async function buscarCotacaoAtual() {
   const { data, error } = await supabaseCliente.from("cotacao_atual").select("*").eq("id", 1).single();
   if (error) throw error;
@@ -378,18 +363,6 @@ function renderTabelaUnificada(tentativas) {
 
 async function atualizarPublico() {
   try {
-    const operacoes = await buscarDadosPublicos();
-    const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
-    const stats = calcularEstatisticas(operacoes, pontosDe, pontosDe);
-
-    renderCards(stats);
-    renderPizza(stats);
-    renderBarras(
-      operacoes,
-      "barras",
-      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
-    );
-
     try {
       renderCotacao(await buscarCotacaoAtual());
     } catch (erroCotacao) {
@@ -412,9 +385,22 @@ async function atualizarPublico() {
 
 async function atualizarPrivado() {
   try {
-    renderTabelaUnificada(await buscarTentativasUnificadas());
+    const tentativas = await buscarTentativasUnificadas();
+    renderTabelaUnificada(tentativas);
+
+    const operacoes = tentativas.map((t) => t.operacoes_reais && t.operacoes_reais[0]).filter(Boolean);
+    const pontosDe = (o) => Math.abs((o.preco_saida ?? o.preco_executado_ninja) - o.preco_executado_ninja);
+    const stats = calcularEstatisticas(operacoes, pontosDe, pontosDe);
+
+    renderCards(stats);
+    renderPizza(stats);
+    renderBarras(
+      operacoes,
+      "barras",
+      (o) => (o.resultado === RESULTADO_LUCRO ? pontosDe(o) : -pontosDe(o)) * USD_POR_PONTO
+    );
   } catch (erro) {
-    console.error("Erro ao carregar tentativas unificadas:", erro.message);
+    console.error("Erro ao carregar dados privados:", erro.message);
   }
 }
 
@@ -428,6 +414,8 @@ function mostrarAreaLogada(logado) {
   document.getElementById("btn-abrir-login").hidden = logado;
   if (logado) document.getElementById("login-card").hidden = true;
   document.getElementById("tabelas-grid").hidden = !logado;
+  document.getElementById("charts-grid").hidden = !logado;
+  document.getElementById("cards-grid").hidden = !logado;
 }
 
 document.getElementById("btn-abrir-login").addEventListener("click", () => {

@@ -35,20 +35,6 @@
     </div>
   </section>
 
-  <section class="charts-grid">
-    <div class="chart-card">
-      <h2>Lucro vs Prejuízo</h2>
-      <div class="pizza-wrap">
-        <div class="pizza" id="pizza"></div>
-        <ul class="legenda" id="pizza-legenda"></ul>
-      </div>
-    </div>
-    <div class="chart-card">
-      <h2>Histórico de Resultados</h2>
-      <div class="barras" id="barras"></div>
-    </div>
-  </section>
-
   <section class="login-card login-flutuante" id="login-card" hidden>
     <h2>Área restrita</h2>
     <form id="login-form">
@@ -105,7 +91,21 @@
 
   </section>
 
-  <section class="cards-grid" id="cards-grid" aria-label="Resumo de performance">
+  <section class="charts-grid" id="charts-grid" hidden>
+    <div class="chart-card">
+      <h2>Lucro vs Prejuízo</h2>
+      <div class="pizza-wrap">
+        <div class="pizza" id="pizza"></div>
+        <ul class="legenda" id="pizza-legenda"></ul>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h2>Histórico de Resultados</h2>
+      <div class="barras" id="barras"></div>
+    </div>
+  </section>
+
+  <section class="cards-grid" id="cards-grid" aria-label="Resumo de performance" hidden>
     <!-- preenchido via JS -->
   </section>
 
