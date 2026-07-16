@@ -398,7 +398,9 @@ main {
   opacity: 0.85;
 }
 
-.tabelas-grid[hidden] {
+.tabelas-grid[hidden],
+.charts-grid[hidden],
+.cards-grid[hidden] {
   display: none;
 }
 
