@@ -12,10 +12,7 @@
 </script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Painel NQ/MNQ — Times &amp; Sales</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&display=swap" rel="stylesheet" />
+<title>Controle de Armazém — Café</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -24,25 +21,10 @@
 
 <main>
 
-  <section class="tabela-card tabela-card-full ts-card">
-    <h2>Times &amp; Sales</h2>
-    <div class="cotacao-bloco">
-      <p class="cotacao" id="cotacao-atual"></p>
-      <p class="atualizado" id="ultima-atualizacao">Carregando dados…</p>
-    </div>
-    <div class="tabela-scroll ts-scroll">
-      <table class="tabela-compacta ts-tabela">
-        <thead>
-          <tr>
-            <th>Horário</th>
-            <th>Preço</th>
-            <th>Quantidade</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-times-sales"></tbody>
-      </table>
-    </div>
-  </section>
+  <div class="topo">
+    <h1>Controle de Armazém — Café</h1>
+    <p class="subtitulo">Entradas, saídas e peso dos bags por lote</p>
+  </div>
 
   <section class="login-card login-flutuante" id="login-card" hidden>
     <h2>Área restrita</h2>
@@ -54,74 +36,88 @@
     </form>
   </section>
 
-  <section class="tabelas-grid" id="tabelas-grid" hidden>
-    <div class="tabelas-topo">
-      <div class="filtro-periodo" id="filtro-periodo" role="group" aria-label="Filtro de período">
-        <button data-periodo="dia">Dia</button>
-        <button data-periodo="semana">Semana</button>
-        <button data-periodo="mes">Mês</button>
-        <button data-periodo="tudo" class="ativo">Tudo</button>
+  <p class="aviso-login" id="aviso-login">Faça login para ver e lançar os dados do armazém.</p>
+
+  <section class="app-armazem" id="app-armazem" hidden>
+
+    <div class="tabela-card">
+      <div class="form-topo">
+        <h2>Novo registro</h2>
+        <button id="btn-sair">Sair</button>
       </div>
-      <button id="btn-sair">Sair</button>
+
+      <form id="form-lote" class="form-lote">
+        <div class="campo">
+          <label for="campo-lote">Lote</label>
+          <input type="number" id="campo-lote" min="1" required />
+        </div>
+        <div class="campo">
+          <label for="campo-nome">Nome</label>
+          <input type="text" id="campo-nome" required />
+        </div>
+        <div class="campo">
+          <label for="campo-referencia">Referência</label>
+          <select id="campo-referencia" required>
+            <option value="Entrada">Entrada</option>
+            <option value="Saida">Saída</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="campo-data">Data</label>
+          <input type="date" id="campo-data" required />
+        </div>
+        <div class="campo">
+          <label for="campo-peso-balanca">Peso Balança (kg) — opcional</label>
+          <input type="number" id="campo-peso-balanca" step="0.001" min="0" />
+        </div>
+
+        <div class="campo campo-bags">
+          <label>Peso dos bags (kg)</label>
+          <div id="lista-bags" class="lista-bags"></div>
+          <button type="button" id="btn-add-bag" class="btn-secundario">+ Adicionar bag</button>
+        </div>
+
+        <div class="resumo-lote" id="resumo-lote">
+          <span>Qtd Bags: <strong id="resumo-qtd-bags">0</strong></span>
+          <span>Peso Armazém: <strong id="resumo-peso-armazem">0</strong> kg</span>
+          <span>Peso Bag: <strong id="resumo-peso-bag">0</strong> kg</span>
+          <span>Qtd Sacos: <strong id="resumo-qtd-sacos">0</strong></span>
+        </div>
+
+        <p class="form-erro" id="form-erro"></p>
+        <button type="submit" class="btn-primario">Salvar registro</button>
+      </form>
     </div>
+
     <div class="tabela-card tabela-card-full">
-      <h2>Registros Operacionais</h2>
+      <h2>Registros</h2>
       <div class="tabela-scroll">
         <table class="tabela-compacta">
           <thead>
             <tr>
-              <th>33,3%</th>
-              <th>66,6%</th>
-              <th>100%</th>
-              <th>Resultado</th>
-              <th>Pontos</th>
-              <th>MEP</th>
+              <th>Lote</th>
+              <th>Nome</th>
+              <th>Referência</th>
+              <th>Data</th>
+              <th>Peso Balança (kg)</th>
+              <th>Peso Armazém (kg)</th>
+              <th>Qtd Bags</th>
+              <th>Peso Bag (kg)</th>
+              <th>Qtd Sacos</th>
+              <th></th>
             </tr>
           </thead>
-          <tbody id="tabela-unificada"></tbody>
+          <tbody id="tabela-registros"></tbody>
         </table>
       </div>
     </div>
 
-    <div class="tabela-card tabela-card-full">
-      <h2>Padrões Aguardando Confirmação</h2>
-      <div class="tabela-scroll">
-        <table class="tabela-compacta">
-          <thead>
-            <tr>
-              <th>33,3%</th>
-              <th>66,6%</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-pendentes"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </section>
-
-  <section class="charts-grid" id="charts-grid" hidden>
-    <div class="chart-card">
-      <h2>Lucro vs Prejuízo</h2>
-      <div class="pizza-wrap">
-        <div class="pizza" id="pizza"></div>
-        <ul class="legenda" id="pizza-legenda"></ul>
-      </div>
-    </div>
-    <div class="chart-card">
-      <h2>Histórico de Resultados</h2>
-      <div class="barras" id="barras"></div>
-    </div>
-  </section>
-
-  <section class="cards-grid" id="cards-grid" aria-label="Resumo de performance" hidden>
-    <!-- preenchido via JS -->
   </section>
 
 </main>
 
 <footer>
-  <p>Atualiza automaticamente a cada 30s · Dados via Supabase</p>
+  <p>Dados via Supabase</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -129,4 +125,3 @@
 <script src="app.js"></script>
 </body>
 </html>
-
