@@ -248,6 +248,10 @@ tbody tr:hover {
   margin-top: 20px;
 }
 
+.tab-painel[hidden] {
+  display: none;
+}
+
 /* ---- Formulario de novo registro ---- */
 
 #btn-sair {
