@@ -124,9 +124,34 @@ function renderTabelaRegistros(registros) {
     .join("");
 }
 
+function renderTabelaTotaisPorNome(registros) {
+  const corpo = document.getElementById("tabela-totais-nome");
+  const totais = {};
+
+  (registros || [])
+    .filter((r) => r.referencia === "Entrada")
+    .forEach((r) => {
+      const { liquido } = pesoLiquidoDeBags(r.armazem_bags.map((b) => b.peso));
+      const qtdSacos = liquido / KG_POR_SACO;
+      totais[r.nome] = (totais[r.nome] || 0) + qtdSacos;
+    });
+
+  const nomes = Object.keys(totais).sort();
+  if (nomes.length === 0) {
+    corpo.innerHTML = `<tr><td colspan="2" class="vazio">Nenhuma entrada ainda</td></tr>`;
+    return;
+  }
+
+  corpo.innerHTML = nomes
+    .map((nome) => `<tr><td>${nome}</td><td>${formatarNumero(totais[nome], 2)}</td></tr>`)
+    .join("");
+}
+
 async function atualizarTabela() {
   try {
-    renderTabelaRegistros(await buscarRegistros());
+    const registros = await buscarRegistros();
+    renderTabelaRegistros(registros);
+    renderTabelaTotaisPorNome(registros);
   } catch (erro) {
     console.error("Erro ao carregar registros:", erro.message);
   }
