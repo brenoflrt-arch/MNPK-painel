@@ -142,9 +142,15 @@
             <button type="button" id="btn-add-bag-estoque" class="btn-secundario">+ Adicionar bag</button>
           </div>
 
+          <div class="campo campo-observacao">
+            <label for="campo-observacao">Observação</label>
+            <textarea id="campo-observacao" rows="2"></textarea>
+          </div>
+
           <div class="resumo-lote" id="resumo-estoque">
             <span>Qtd: <strong id="resumo-estoque-qtd">0</strong></span>
             <span>Peso: <strong id="resumo-estoque-peso">0</strong> kg</span>
+            <span>Qtd Sacas: <strong id="resumo-estoque-qtd-sacas">0</strong></span>
             <span>Peso AP: <strong id="resumo-estoque-peso-ap">0</strong> kg</span>
             <span>Custo Total: R$ <strong id="resumo-estoque-custo-total">0</strong></span>
           </div>
@@ -163,9 +169,11 @@
                 <th>QTD</th>
                 <th>AP (%)</th>
                 <th>Peso (kg)</th>
+                <th>Qtd Sacas</th>
                 <th>Custo (R$/kg)</th>
                 <th>Peso AP (kg)</th>
                 <th>Custo Total (R$)</th>
+                <th>Observação</th>
                 <th></th>
               </tr>
             </thead>

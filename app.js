@@ -192,6 +192,7 @@ function atualizarResumoEstoque(pesos) {
 
   document.getElementById("resumo-estoque-qtd").textContent = qtd;
   document.getElementById("resumo-estoque-peso").textContent = formatarNumero(liquido, 3);
+  document.getElementById("resumo-estoque-qtd-sacas").textContent = formatarNumero(liquido / KG_POR_SACO, 2);
   document.getElementById("resumo-estoque-peso-ap").textContent = formatarNumero(pesoAp, 3);
   document.getElementById("resumo-estoque-custo-total").textContent = formatarNumero(custoTotal, 2);
 }
@@ -204,7 +205,7 @@ document.getElementById("campo-custo").addEventListener("input", () => atualizar
 async function buscarEstoque() {
   const { data, error } = await supabaseCliente
     .from("estoque_itens")
-    .select("id, ap_percentual, custo, estoque_bags(peso)")
+    .select("id, ap_percentual, custo, observacao, estoque_bags(peso)")
     .order("id", { ascending: false })
     .limit(300);
 
@@ -216,7 +217,7 @@ function renderTabelaEstoque(itens) {
   const corpo = document.getElementById("tabela-estoque");
 
   if (!itens || itens.length === 0) {
-    corpo.innerHTML = `<tr><td colspan="7" class="vazio">Nenhum item ainda</td></tr>`;
+    corpo.innerHTML = `<tr><td colspan="9" class="vazio">Nenhum item ainda</td></tr>`;
     return;
   }
 
@@ -231,9 +232,11 @@ function renderTabelaEstoque(itens) {
           <td>${qtd}</td>
           <td>${formatarNumero(item.ap_percentual, 2)}</td>
           <td>${formatarNumero(liquido, 3)}</td>
+          <td>${formatarNumero(liquido / KG_POR_SACO, 2)}</td>
           <td>${formatarNumero(item.custo, 2)}</td>
           <td>${formatarNumero(pesoAp, 3)}</td>
           <td>${formatarNumero(custoTotal, 2)}</td>
+          <td>${item.observacao ? item.observacao : "—"}</td>
           <td><button type="button" class="btn-excluir-estoque" data-id="${item.id}" aria-label="Excluir item">×</button></td>
         </tr>`;
     })
@@ -268,11 +271,13 @@ document.getElementById("form-estoque").addEventListener("submit", async (evento
 
   const apPercentual = Number(document.getElementById("campo-ap").value);
   const custo = Number(document.getElementById("campo-custo").value);
+  const observacaoValor = document.getElementById("campo-observacao").value.trim();
+  const observacao = observacaoValor === "" ? null : observacaoValor;
 
   try {
     const { data: novoItem, error: erroItem } = await supabaseCliente
       .from("estoque_itens")
-      .insert({ ap_percentual: apPercentual, custo })
+      .insert({ ap_percentual: apPercentual, custo, observacao })
       .select()
       .single();
     if (erroItem) throw erroItem;
