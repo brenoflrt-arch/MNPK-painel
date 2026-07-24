@@ -1,15 +1,16 @@
 :root {
-  --page-plane:     #0d0d0d;
-  --surface-1:      #1a1a19;
-  --surface-2:      #202020;
-  --text-primary:   #ffffff;
-  --text-secondary: #c3c2b7;
-  --text-muted:     #898781;
-  --gridline:       #2c2c2a;
-  --border:         rgba(255, 255, 255, 0.10);
-  --good:           #0ca30c;
-  --critical:       #d03b3b;
-  --accent:         #3987e5;
+  --page-plane:     #f5f7fa;
+  --surface-1:      #ffffff;
+  --surface-2:      #eef1f6;
+  --text-primary:   #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted:     #9ca3af;
+  --gridline:       #e5e7eb;
+  --border:         rgba(15, 23, 42, 0.10);
+  --good:           #15803d;
+  --critical:       #dc2626;
+  --accent:         #2563eb;
+  --sombra-card:    0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 * { box-sizing: border-box; }
@@ -65,6 +66,7 @@ main {
   border-radius: 10px;
   padding: 24px;
   text-align: center;
+  box-shadow: var(--sombra-card);
 }
 
 .login-card h2 {
@@ -138,7 +140,7 @@ main {
   z-index: 100;
   width: min(320px, calc(100vw - 32px));
   margin: 0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
 }
 
 /* ---- Cards / tabelas genericas ---- */
@@ -148,6 +150,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px;
+  box-shadow: var(--sombra-card);
 }
 
 .tabela-card-full {
@@ -338,7 +341,8 @@ tbody tr:hover {
 }
 
 .btn-remover-bag,
-.btn-excluir-registro {
+.btn-excluir-registro,
+.btn-excluir-estoque {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--critical);
@@ -352,8 +356,9 @@ tbody tr:hover {
 }
 
 .btn-remover-bag:hover,
-.btn-excluir-registro:hover {
-  background: rgba(208, 59, 59, 0.12);
+.btn-excluir-registro:hover,
+.btn-excluir-estoque:hover {
+  background: rgba(220, 38, 38, 0.10);
 }
 
 .btn-secundario {
