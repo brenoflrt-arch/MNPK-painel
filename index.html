@@ -38,78 +38,142 @@
 
   <p class="aviso-login" id="aviso-login">Faça login para ver e lançar os dados do armazém.</p>
 
-  <section class="app-armazem" id="app-armazem" hidden>
+  <section class="app-armazem" id="app-conteudo" hidden>
 
-    <div class="tabela-card">
-      <div class="form-topo">
-        <h2>Novo registro</h2>
-        <button id="btn-sair">Sair</button>
+    <div class="tab-nav" id="tab-nav" role="tablist">
+      <div class="tab-nav-botoes">
+        <button type="button" class="tab-botao ativo" data-tab="armazem">Armazém</button>
+        <button type="button" class="tab-botao" data-tab="estoque">Estoque</button>
       </div>
-
-      <form id="form-lote" class="form-lote">
-        <div class="campo">
-          <label for="campo-lote">Lote</label>
-          <input type="number" id="campo-lote" min="1" required />
-        </div>
-        <div class="campo">
-          <label for="campo-nome">Nome</label>
-          <input type="text" id="campo-nome" required />
-        </div>
-        <div class="campo">
-          <label for="campo-referencia">Referência</label>
-          <select id="campo-referencia" required>
-            <option value="Entrada">Entrada</option>
-            <option value="Saida">Saída</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label for="campo-data">Data</label>
-          <input type="date" id="campo-data" required />
-        </div>
-        <div class="campo">
-          <label for="campo-peso-balanca">Peso Balança (kg) — opcional</label>
-          <input type="number" id="campo-peso-balanca" step="0.001" min="0" />
-        </div>
-
-        <div class="campo campo-bags">
-          <label>Peso dos bags (kg)</label>
-          <div id="lista-bags" class="lista-bags"></div>
-          <button type="button" id="btn-add-bag" class="btn-secundario">+ Adicionar bag</button>
-        </div>
-
-        <div class="resumo-lote" id="resumo-lote">
-          <span>Qtd Bags: <strong id="resumo-qtd-bags">0</strong></span>
-          <span>Peso Armazém: <strong id="resumo-peso-armazem">0</strong> kg</span>
-          <span>Peso Bag: <strong id="resumo-peso-bag">0</strong> kg</span>
-          <span>Qtd Sacos: <strong id="resumo-qtd-sacos">0</strong></span>
-        </div>
-
-        <p class="form-erro" id="form-erro"></p>
-        <button type="submit" class="btn-primario">Salvar registro</button>
-      </form>
+      <button id="btn-sair">Sair</button>
     </div>
 
-    <div class="tabela-card tabela-card-full">
-      <h2>Registros</h2>
-      <div class="tabela-scroll">
-        <table class="tabela-compacta">
-          <thead>
-            <tr>
-              <th>Lote</th>
-              <th>Nome</th>
-              <th>Referência</th>
-              <th>Data</th>
-              <th>Peso Balança (kg)</th>
-              <th>Peso Armazém (kg)</th>
-              <th>Qtd Bags</th>
-              <th>Peso Bag (kg)</th>
-              <th>Qtd Sacos</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="tabela-registros"></tbody>
-        </table>
+    <div class="tab-painel" id="tab-armazem">
+
+      <div class="tabela-card">
+        <h2>Novo registro</h2>
+
+        <form id="form-lote" class="form-lote">
+          <div class="campo">
+            <label for="campo-lote">Lote</label>
+            <input type="number" id="campo-lote" min="1" required />
+          </div>
+          <div class="campo">
+            <label for="campo-nome">Nome</label>
+            <input type="text" id="campo-nome" required />
+          </div>
+          <div class="campo">
+            <label for="campo-referencia">Referência</label>
+            <select id="campo-referencia" required>
+              <option value="Entrada">Entrada</option>
+              <option value="Saida">Saída</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="campo-data">Data</label>
+            <input type="date" id="campo-data" required />
+          </div>
+          <div class="campo">
+            <label for="campo-peso-balanca">Peso Balança (kg) — opcional</label>
+            <input type="number" id="campo-peso-balanca" step="0.001" min="0" />
+          </div>
+
+          <div class="campo campo-bags">
+            <label>Peso dos bags (kg)</label>
+            <div id="lista-bags" class="lista-bags"></div>
+            <button type="button" id="btn-add-bag" class="btn-secundario">+ Adicionar bag</button>
+          </div>
+
+          <div class="resumo-lote" id="resumo-lote">
+            <span>Qtd Bags: <strong id="resumo-qtd-bags">0</strong></span>
+            <span>Peso Armazém: <strong id="resumo-peso-armazem">0</strong> kg</span>
+            <span>Peso Bag: <strong id="resumo-peso-bag">0</strong> kg</span>
+            <span>Qtd Sacos: <strong id="resumo-qtd-sacos">0</strong></span>
+          </div>
+
+          <p class="form-erro" id="form-erro"></p>
+          <button type="submit" class="btn-primario">Salvar registro</button>
+        </form>
       </div>
+
+      <div class="tabela-card tabela-card-full">
+        <h2>Registros</h2>
+        <div class="tabela-scroll">
+          <table class="tabela-compacta">
+            <thead>
+              <tr>
+                <th>Lote</th>
+                <th>Nome</th>
+                <th>Referência</th>
+                <th>Data</th>
+                <th>Peso Balança (kg)</th>
+                <th>Peso Armazém (kg)</th>
+                <th>Qtd Bags</th>
+                <th>Peso Bag (kg)</th>
+                <th>Qtd Sacos</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tabela-registros"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tab-painel" id="tab-estoque" hidden>
+
+      <div class="tabela-card">
+        <h2>Novo item de estoque</h2>
+
+        <form id="form-estoque" class="form-lote">
+          <div class="campo">
+            <label for="campo-ap">AP (%)</label>
+            <input type="number" id="campo-ap" step="0.01" min="0" max="100" required />
+          </div>
+          <div class="campo">
+            <label for="campo-custo">Custo (R$) — por kg</label>
+            <input type="number" id="campo-custo" step="0.01" min="0" required />
+          </div>
+
+          <div class="campo campo-bags">
+            <label>Peso dos bags (kg)</label>
+            <div id="lista-bags-estoque" class="lista-bags"></div>
+            <button type="button" id="btn-add-bag-estoque" class="btn-secundario">+ Adicionar bag</button>
+          </div>
+
+          <div class="resumo-lote" id="resumo-estoque">
+            <span>Qtd: <strong id="resumo-estoque-qtd">0</strong></span>
+            <span>Peso: <strong id="resumo-estoque-peso">0</strong> kg</span>
+            <span>Peso AP: <strong id="resumo-estoque-peso-ap">0</strong> kg</span>
+            <span>Custo Total: R$ <strong id="resumo-estoque-custo-total">0</strong></span>
+          </div>
+
+          <p class="form-erro" id="form-erro-estoque"></p>
+          <button type="submit" class="btn-primario">Salvar item</button>
+        </form>
+      </div>
+
+      <div class="tabela-card tabela-card-full">
+        <h2>Estoque</h2>
+        <div class="tabela-scroll">
+          <table class="tabela-compacta">
+            <thead>
+              <tr>
+                <th>QTD</th>
+                <th>AP (%)</th>
+                <th>Peso (kg)</th>
+                <th>Custo (R$/kg)</th>
+                <th>Peso AP (kg)</th>
+                <th>Custo Total (R$)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tabela-estoque"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </section>
