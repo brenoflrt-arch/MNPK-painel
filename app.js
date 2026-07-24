@@ -37,8 +37,9 @@ function renderListaBags() {
 
 function atualizarResumoLote() {
   const qtdBags = pesosBags.length;
-  const pesoArmazem = pesosBags.reduce((soma, p) => soma + (Number(p) || 0), 0);
+  const somaBags = pesosBags.reduce((soma, p) => soma + (Number(p) || 0), 0);
   const pesoBag = qtdBags * PESO_BAG_UNITARIO;
+  const pesoArmazem = somaBags - pesoBag;
   const qtdSacos = pesoArmazem / KG_POR_SACO;
 
   document.getElementById("resumo-qtd-bags").textContent = qtdBags;
@@ -91,8 +92,9 @@ function renderTabelaRegistros(registros) {
   corpo.innerHTML = registros
     .map((r) => {
       const qtdBags = r.armazem_bags.length;
-      const pesoArmazem = r.armazem_bags.reduce((soma, b) => soma + Number(b.peso), 0);
+      const somaBags = r.armazem_bags.reduce((soma, b) => soma + Number(b.peso), 0);
       const pesoBag = qtdBags * PESO_BAG_UNITARIO;
+      const pesoArmazem = somaBags - pesoBag;
       const qtdSacos = pesoArmazem / KG_POR_SACO;
 
       return `
